@@ -115,14 +115,14 @@ pair of mutually inverse maps ϕ and γ:
 
 \begin{code}
 
-ϕ : 𝔹 → 𝔹'
-ϕ L       = L
-ϕ R       = R
-ϕ (l x)   = l' (ϕ x)
-ϕ (r x)   = r' (ϕ x)
-ϕ (eqL i) = L
-ϕ (eqC i) = C
-ϕ (eqR i) = R
+φ : 𝔹 → 𝔹'
+φ L       = L
+φ R       = R
+φ (l x)   = l' (φ x)
+φ (r x)   = r' (φ x)
+φ (eqL i) = L
+φ (eqC i) = C
+φ (eqR i) = R
 
 γ : 𝔹' → 𝔹
 γ L         = L
@@ -133,16 +133,16 @@ pair of mutually inverse maps ϕ and γ:
 
 \end{code}
 
-That ϕ is a left inverse of γ is easy, by induction on 𝔹':
+That φ is a left inverse of γ is easy, by induction on 𝔹':
 
 \begin{code}
 
-ϕγ : (y : 𝔹') → ϕ (γ y) ≡ y
-ϕγ L     = refl
-ϕγ R     = refl
-ϕγ (η y) = δ y
+φγ : (y : 𝔹') → φ (γ y) ≡ y
+φγ L     = refl
+φγ R     = refl
+φγ (η y) = δ y
  where
-  δ : (y : D) → ϕ (γ (η y)) ≡ η y
+  δ : (y : D) → φ (γ (η y)) ≡ η y
   δ c     = refl
   δ (l y) = cong l' (δ y)
   δ (r y) = cong r' (δ y)
@@ -171,17 +171,17 @@ for the path constructors eqL, eqC and eqR, for which hcomp is used:
 
 \begin{code}
 
-γϕ : (x : 𝔹) → γ (ϕ x) ≡ x
-γϕ L         = refl
-γϕ R         = refl
-γϕ (l x)     = square-l (ϕ x) ∙ cong l (γϕ x)
-γϕ (r x)     = square-r (ϕ x) ∙ cong r (γϕ x)
-γϕ (eqL i) j = hcomp (λ k → λ { (i = i0) → L
+γφ : (x : 𝔹) → γ (φ x) ≡ x
+γφ L         = refl
+γφ R         = refl
+γφ (l x)     = square-l (φ x) ∙ cong l (γφ x)
+γφ (r x)     = square-r (φ x) ∙ cong r (γφ x)
+γφ (eqL i) j = hcomp (λ k → λ { (i = i0) → L
                               ; (j = i0) → L
                               ; (j = i1) → eqL i }) (eqL (i ∧ j))
-γϕ (eqC i) j = hcomp (λ k → λ { (j = i0) → l R
+γφ (eqC i) j = hcomp (λ k → λ { (j = i0) → l R
                               ; (j = i1) → eqC i }) (eqC (i ∧ j))
-γϕ (eqR i) j = hcomp (λ k → λ { (i = i0) → R
+γφ (eqR i) j = hcomp (λ k → λ { (i = i0) → R
                               ; (j = i0) → R
                               ; (j = i1) → eqR i }) (eqR (i ∧ j))
 
@@ -196,7 +196,7 @@ The following are immediate consequences of the above:
     so is a set too.
 
     (Technically, it is enough for these two conclusions that 𝔹 is a
-    retract of 𝔹', which is the harder part γϕ of the invertibility
+    retract of 𝔹', which is the harder part γφ of the invertibility
     condition).
 
   * So, in particular, the initial binary system is a set.
