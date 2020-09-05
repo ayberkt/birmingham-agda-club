@@ -328,9 +328,9 @@ module _ {ℓ    : Level}
          (y    : P R)
          (f    : (b : 𝔹) → P b → P (l b))
          (g    : (b : 𝔹) → P b → P (r b))
-         (eqf  : subst P eqL x       ≡ f L x) -- Not sure if this is the most
-         (eqfg : subst P eqC (f R y) ≡ g L x) -- suitable cubical formulation.
-         (eqg  : subst P eqR y       ≡ g R y) --
+         (eqf  : PathP (λ i → P (eqL i)) x (f L x))        -- Cubical-style formulation.
+         (eqfg : PathP (λ i → P (eqC i)) (f R y) (g L x))  --
+         (eqg  : PathP (λ i → P (eqR i)) y (g R y))        --
        where
 
  𝔹-ind : (b : 𝔹) → P b
@@ -338,10 +338,25 @@ module _ {ℓ    : Level}
  𝔹-ind R = y
  𝔹-ind (l b) = f b (𝔹-ind b)
  𝔹-ind (r b) = g b (𝔹-ind b)
- 𝔹-ind (eqL i) = toPathP {A = λ j → P (eqL j)} eqf i
- 𝔹-ind (eqC i) = toPathP {A = λ j → P (eqC j)} eqfg i
- 𝔹-ind (eqR i) = toPathP {A = λ j → P (eqR j)} eqg i
+ 𝔹-ind (eqL i) = eqf i
+ 𝔹-ind (eqC i) = eqfg i
+ 𝔹-ind (eqR i) = eqg i
 
+module _ {ℓ    : Level}
+         (P    : 𝔹 → Type ℓ)
+         (x    : P L)
+         (y    : P R)
+         (f    : (b : 𝔹) → P b → P (l b))
+         (g    : (b : 𝔹) → P b → P (r b))
+         (eqf  : subst P eqL x       ≡ f L x) -- HoTT/UF style fomulation.
+         (eqfg : subst P eqC (f R y) ≡ g L x) --
+         (eqg  : subst P eqR y       ≡ g R y) --
+       where
+
+ 𝔹-ind' : (b : 𝔹) → P b
+ 𝔹-ind' = 𝔹-ind P x y f g (λ i → toPathP {A = λ j → P (eqL j)} eqf i)
+                           (λ i → toPathP {A = λ j → P (eqC j)} eqfg i)
+                           (λ i → toPathP {A = λ j → P (eqR j)} eqg i)
 \end{code}
 
 Induction for the MLTT construction of the initial binary system:
