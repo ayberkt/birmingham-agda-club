@@ -50,9 +50,9 @@ eqC:
 \begin{code}
 
 data 𝔻 :  Type₀ where
- c : 𝔻
- l : 𝔻 → 𝔻
- r : 𝔻 → 𝔻
+ center : 𝔻
+ left   : 𝔻 → 𝔻
+ right  : 𝔻 → 𝔻
 
 \end{code}
 
@@ -68,15 +68,6 @@ data 𝔹' : Type₀ where
 
 \end{code}
 
-Its center:
-
-\begin{code}
-
-C : 𝔹'
-C = η c
-
-\end{code}
-
 We now define the left and right constructors l' and r' of 𝔹',
 corresponding to the constructors l and r of 𝔹:
 
@@ -84,13 +75,13 @@ corresponding to the constructors l and r of 𝔹:
 
 l' : 𝔹' → 𝔹'
 l' L     = L
-l' R     = C
-l' (η x) = η (l x)
+l' R     = η center
+l' (η x) = η (left x)
 
 r' : 𝔹' → 𝔹'
-r' L     = C
+r' L     = η center
 r' R     = R
-r' (η x) = η (r x)
+r' (η x) = η (right x)
 
 \end{code}
 
@@ -109,17 +100,8 @@ eqR' = refl
 
 \end{code}
 
-Notice that C is the common point in the images of l' and r':
-
-\begin{code}
-
-eqC'l : l' R ≡ C
-eqC'l = refl
-
-eqC'r : C ≡ r' L
-eqC'r = refl
-
-\end{code}
+Notice that, by construction, η center is the common point in the
+images of l' and r'.
 
 The equivalence of the two constructions is given by the following
 pair of mutually inverse maps ϕ and γ:
@@ -136,11 +118,11 @@ pair of mutually inverse maps ϕ and γ:
 φ (eqR i) = eqR' i -- Same as R.
 
 γ : 𝔹' → 𝔹
-γ L         = L
-γ R         = R
-γ (η c)     = l R
-γ (η (l y)) = l (γ (η y))
-γ (η (r y)) = r (γ (η y))
+γ L             = L
+γ R             = R
+γ (η center)    = l R
+γ (η (left y))  = l (γ (η y))
+γ (η (right y)) = r (γ (η y))
 
 \end{code}
 
@@ -154,9 +136,9 @@ That φ is a left inverse of γ is easy, by induction on 𝔹':
 φγ (η y) = δ y
  where
   δ : (y : 𝔻) → φ (γ (η y)) ≡ η y
-  δ c     = refl
-  δ (l y) = cong l' (δ y)
-  δ (r y) = cong r' (δ y)
+  δ center    = refl
+  δ (left y)  = cong l' (δ y)
+  δ (right y) = cong r' (δ y)
 
 \end{code}
 
@@ -285,11 +267,11 @@ module _  {ℓ    : Level}
  𝔹-rec (eqR i) = eqg i
 
  𝔹'-rec : 𝔹' → X
- 𝔹'-rec L = x
- 𝔹'-rec R = y
- 𝔹'-rec (η c) = f y -- Or g x, but then we need to adapt the definitions below.
- 𝔹'-rec (η (l x)) = f (𝔹'-rec (η x))
- 𝔹'-rec (η (r x)) = g (𝔹'-rec (η x))
+ 𝔹'-rec L             = x
+ 𝔹'-rec R             = y
+ 𝔹'-rec (η center)    = f y -- Or g x, but then we need to adapt the definitions below.
+ 𝔹'-rec (η (left x))  = f (𝔹'-rec (η x))
+ 𝔹'-rec (η (right x)) = g (𝔹'-rec (η x))
 
 \end{code}
 
@@ -334,10 +316,10 @@ module _ {ℓ    : Level}
        where
 
  𝔹-ind : (b : 𝔹) → P b
- 𝔹-ind L = x
- 𝔹-ind R = y
- 𝔹-ind (l b) = f b (𝔹-ind b)
- 𝔹-ind (r b) = g b (𝔹-ind b)
+ 𝔹-ind L       = x
+ 𝔹-ind R       = y
+ 𝔹-ind (l b)   = f b (𝔹-ind b)
+ 𝔹-ind (r b)   = g b (𝔹-ind b)
  𝔹-ind (eqL i) = eqf i
  𝔹-ind (eqC i) = eqfg i
  𝔹-ind (eqR i) = eqg i
@@ -375,11 +357,11 @@ module _ {ℓ    : Level}
        where
 
  𝔹'-ind : (b : 𝔹') → P b
- 𝔹'-ind L         = x
- 𝔹'-ind R         = y
- 𝔹'-ind (η c)     = f R y
- 𝔹'-ind (η (l x)) = f (η x) (𝔹'-ind (η x))
- 𝔹'-ind (η (r x)) = g (η x) (𝔹'-ind (η x))
+ 𝔹'-ind L             = x
+ 𝔹'-ind R             = y
+ 𝔹'-ind (η center)    = f R y
+ 𝔹'-ind (η (left x))  = f (η x) (𝔹'-ind (η x))
+ 𝔹'-ind (η (right x)) = g (η x) (𝔹'-ind (η x))
 
  𝔹'-ind-l : (x : 𝔹') → 𝔹'-ind (l' x) ≡ f x (𝔹'-ind x)
  𝔹'-ind-r : (x : 𝔹') → 𝔹'-ind (r' x) ≡ g x (𝔹'-ind x)
@@ -399,5 +381,23 @@ module _ {ℓ    : Level}
  𝔹'-ind-L = var-fixed-point-construction x (f L) eqf
  𝔹'-ind-C = path-construction (f R y) (g L x) eqfg
  𝔹'-ind-R = var-fixed-point-construction y (g R) eqg
+
+\end{code}
+
+Preparation for the midpoint operation.
+
+\begin{code}
+
+m : 𝔹 → 𝔹
+m L = l (r L)
+m R = r (l R)
+m (l x) = l (r x)
+m (r x) = r (l x)
+m (eqL i) = refl {ℓ-zero} {𝔹} {l (r L)} i
+m (eqC i) = p i
+ where
+  p : l (r R) ≡ r (l L)
+  p = cong l (sym eqR) ∙ eqC ∙ cong r eqL
+m (eqR i) = refl {ℓ-zero} {𝔹} {r (l R)} i
 
 \end{code}
