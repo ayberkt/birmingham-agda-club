@@ -1,11 +1,22 @@
 Martin Escardo and Alex Rice, 4th September 2020.
 
+Produced in the Birmingham Agda Club. We benefited from the company
+and discussions with the other members, Todd Ambridge, Tom De Jong,
+George Kaye, Owen Milner and Ayberk Tosun.
+
+See the file https://www.cs.bham.ac.uk/~mhe/TypeTopology/InitialBinarySystem.html
+for background.
+
+The initial binary system gives the closed dyadic interval, and also
+gives the free midpoint algebra over two generators (this still needs
+to be coded in Agda).
+
 We define the initial binary system as a HIT, in cubical type theory,
 and also in pure MLTT, and we show that, in cubical type theory, the
 two definitions give equivalent types.
 
-The motivation for this investigation is to know whether the initial
-binary system is a set.
+The motivation for this investigation in this file is to know whether
+the initial binary system is a set.
 
 \begin{code}
 
