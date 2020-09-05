@@ -32,28 +32,28 @@ data 𝔹 : Type₀ where
 
 And now the initial binary system defined in pure MLTT.
 
-We first define an auxiliary data type D, where c is supposed to be
+We first define an auxiliary data type 𝔻, where c is supposed to be
 the common point in the images of l and r given by the identification
 eqC:
 
 \begin{code}
 
-data D :  Type₀ where
- c : D
- l : D → D
- r : D → D
+data 𝔻 :  Type₀ where
+ c : 𝔻
+ l : 𝔻 → 𝔻
+ r : 𝔻 → 𝔻
 
 \end{code}
 
 Then the initial binary system is defined in MLTT by adding left and
-right endpoints to D, as 𝟙 + 𝟙 + D, where 𝟙 is the unit type:
+right endpoints to 𝔻, as 𝟙 + 𝟙 + 𝔻, where 𝟙 is the unit type:
 
 \begin{code}
 
 data 𝔹' : Type₀ where
  L : 𝔹'
  R : 𝔹'
- η : D → 𝔹'
+ η : 𝔻 → 𝔹'
 
 \end{code}
 
@@ -120,9 +120,9 @@ pair of mutually inverse maps ϕ and γ:
 φ R       = R
 φ (l x)   = l' (φ x)
 φ (r x)   = r' (φ x)
-φ (eqL i) = L
-φ (eqC i) = C
-φ (eqR i) = R
+φ (eqL i) = eqL' i -- Same as L.
+φ (eqC i) = eqC' i -- Same as C.
+φ (eqR i) = eqR' i -- Same as R.
 
 γ : 𝔹' → 𝔹
 γ L         = L
@@ -142,7 +142,7 @@ That φ is a left inverse of γ is easy, by induction on 𝔹':
 φγ R     = refl
 φγ (η y) = δ y
  where
-  δ : (y : D) → φ (γ (η y)) ≡ η y
+  δ : (y : 𝔻) → φ (γ (η y)) ≡ η y
   δ c     = refl
   δ (l y) = cong l' (δ y)
   δ (r y) = cong r' (δ y)
@@ -171,19 +171,61 @@ for the path constructors eqL, eqC and eqR, for which hcomp is used:
 
 \begin{code}
 
+path-construction : {ℓ : Level} {X : Type ℓ}
+                    (x y : X)
+                    (p : x ≡ y)
+                  → (i : I) → x ≡ p i
+path-construction x y p i j = hcomp (λ k → λ { (j = i0) → x
+                                             ; (j = i1) → p i })
+                                    (p (i ∧ j))
+
+fixed-point-construction : {ℓ : Level} {X : Type ℓ}
+                           (x : X)
+                           (f : X → X)
+                           (p : x ≡ f x)
+                         → (i : I) → x ≡ p i
+fixed-point-construction x f = path-construction x (f x)
+
+\end{code}
+
+For the purposes of definining γφ below, we need a different
+construction of a point of the same type as fixed-point-construction,
+that is, a different way to travel from x to p i:
+
+\begin{code}
+
+var-fixed-point-construction : {ℓ : Level} {X : Type ℓ}
+                               (x : X)
+                               (f : X → X)
+                               (p : x ≡ f x)
+                             → (i : I) → x ≡ p i
+var-fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
+                                                        ; (j = i0) → x
+                                                        ; (j = i1) → p i })
+                                               (p (i ∧ j))
+\end{code}
+
+These constructions are applied to obtain the following specific
+paths, which in turn are used to construct γϕ below:
+
+\begin{code}
+
+eql : (i : I) → L   ≡ eqL i
+eqc : (i : I) → l R ≡ eqC i
+eqr : (i : I) → R   ≡ eqR i
+
+eql = var-fixed-point-construction L l eqL
+eqc = path-construction (l R) (r L) eqC
+eqr = var-fixed-point-construction R r eqR
+
 γφ : (x : 𝔹) → γ (φ x) ≡ x
-γφ L         = refl
-γφ R         = refl
-γφ (l x)     = square-l (φ x) ∙ cong l (γφ x)
-γφ (r x)     = square-r (φ x) ∙ cong r (γφ x)
-γφ (eqL i) j = hcomp (λ k → λ { (i = i0) → L
-                              ; (j = i0) → L
-                              ; (j = i1) → eqL i }) (eqL (i ∧ j))
-γφ (eqC i) j = hcomp (λ k → λ { (j = i0) → l R
-                              ; (j = i1) → eqC i }) (eqC (i ∧ j))
-γφ (eqR i) j = hcomp (λ k → λ { (i = i0) → R
-                              ; (j = i0) → R
-                              ; (j = i1) → eqR i }) (eqR (i ∧ j))
+γφ L       = refl
+γφ R       = refl
+γφ (l x)   = square-l (φ x) ∙ cong l (γφ x)
+γφ (r x)   = square-r (φ x) ∙ cong r (γφ x)
+γφ (eqL i) = eql i
+γφ (eqC i) = eqc i
+γφ (eqR i) = eqr i
 
 \end{code}
 
@@ -197,7 +239,7 @@ The following are immediate consequences of the above:
 
     (Technically, it is enough for these two conclusions that 𝔹 is a
     retract of 𝔹', which is the harder part γφ of the invertibility
-    condition).
+    condition.)
 
   * So, in particular, the initial binary system is a set.
 
@@ -208,3 +250,135 @@ extensionality axioms), without invoking the cubical machinery.
 Notice that a binary system homomorphism, in this ∞-setting, is a
 function that commutes not only with L, R, l, r, but also with eqL,
 eqC and eqR.
+
+We now consider recursion and then, more generally, induction.
+
+\begin{code}
+
+module _  {ℓ    : Level}
+          {X    : Type ℓ}
+          (x y  : X)
+          (f g  : X → X)
+          (eqf  : x ≡ f x)
+          (eqfg : f y ≡ g x)
+          (eqg  : y ≡ g y)
+       where
+
+ 𝔹-rec : 𝔹 → X
+ 𝔹-rec L       = x
+ 𝔹-rec R       = y
+ 𝔹-rec (l b)   = f (𝔹-rec b)
+ 𝔹-rec (r b)   = g (𝔹-rec b)
+ 𝔹-rec (eqL i) = eqf i
+ 𝔹-rec (eqC i) = eqfg i
+ 𝔹-rec (eqR i) = eqg i
+
+ 𝔹'-rec : 𝔹' → X
+ 𝔹'-rec L = x
+ 𝔹'-rec R = y
+ 𝔹'-rec (η c) = f y -- Or g x, but then we need to adapt the definitions below.
+ 𝔹'-rec (η (l x)) = f (𝔹'-rec (η x))
+ 𝔹'-rec (η (r x)) = g (𝔹'-rec (η x))
+
+\end{code}
+
+The desired equations for 𝔹'-rec hold, but not definitionally:
+
+\begin{code}
+
+ 𝔹'-rec-l : (x : 𝔹') → 𝔹'-rec (l' x) ≡ f (𝔹'-rec x)
+ 𝔹'-rec-r : (x : 𝔹') → 𝔹'-rec (r' x) ≡ g (𝔹'-rec x)
+
+ 𝔹'-rec-L : ∀ i → 𝔹'-rec (eqL' i) ≡ eqf i
+ 𝔹'-rec-C : ∀ i → 𝔹'-rec (eqC' i) ≡ eqfg i
+ 𝔹'-rec-R : ∀ i → 𝔹'-rec (eqR' i) ≡ eqg i
+
+ 𝔹'-rec-l L     = eqf
+ 𝔹'-rec-l R     = refl
+ 𝔹'-rec-l (η x) = refl
+
+ 𝔹'-rec-r L     = eqfg
+ 𝔹'-rec-r R     = eqg
+ 𝔹'-rec-r (η x) = refl
+
+ 𝔹'-rec-L = var-fixed-point-construction x f eqf
+ 𝔹'-rec-C = path-construction (f y) (g x) eqfg
+ 𝔹'-rec-R = var-fixed-point-construction y g eqg
+
+\end{code}
+
+Induction:
+
+\begin{code}
+
+module _ {ℓ    : Level}
+         (P    : 𝔹 → Type ℓ)
+         (x    : P L)
+         (y    : P R)
+         (f    : (b : 𝔹) → P b → P (l b))
+         (g    : (b : 𝔹) → P b → P (r b))
+         (eqf  : subst P eqL x       ≡ f L x) -- Not sure if this is the most
+         (eqfg : subst P eqC (f R y) ≡ g L x) -- suitable cubical formulation.
+         (eqg  : subst P eqR y       ≡ g R y) --
+       where
+
+ 𝔹-ind : (b : 𝔹) → P b
+ 𝔹-ind L = x
+ 𝔹-ind R = y
+ 𝔹-ind (l b) = f b (𝔹-ind b)
+ 𝔹-ind (r b) = g b (𝔹-ind b)
+ 𝔹-ind (eqL i) = {!!}
+ 𝔹-ind (eqC i) = {!!}
+ 𝔹-ind (eqR i) = {!!}
+
+
+ blah : ∀ i → P (eqL i)
+ blah i = transport (cong P p) x
+  where
+   p : L ≡ eqL i
+   p = eql i
+
+\end{code}
+
+Induction for the MLTT construction of the initial binary system:
+
+\begin{code}
+
+module _ {ℓ    : Level}
+         (P    : 𝔹' → Type ℓ)
+         (x    : P L)
+         (y    : P R)
+         (f    : (b : 𝔹') → P b → P (l' b))
+         (g    : (b : 𝔹') → P b → P (r' b))
+         (eqf  : x ≡ f L x)
+         (eqfg : f R y ≡ g L x)
+         (eqg  : y ≡ g R y)
+       where
+
+ 𝔹'-ind : (b : 𝔹') → P b
+ 𝔹'-ind L = x
+ 𝔹'-ind R = y
+ 𝔹'-ind (η c) = f R y
+ 𝔹'-ind (η (l x)) = f (η x) (𝔹'-ind (η x))
+ 𝔹'-ind (η (r x)) = g (η x) (𝔹'-ind (η x))
+
+ 𝔹'-ind-l : (x : 𝔹') → 𝔹'-ind (l' x) ≡ f x (𝔹'-ind x)
+ 𝔹'-ind-r : (x : 𝔹') → 𝔹'-ind (r' x) ≡ g x (𝔹'-ind x)
+
+ 𝔹'-ind-L : ∀ i → 𝔹'-ind (eqL' i) ≡ eqf i
+ 𝔹'-ind-C : ∀ i → 𝔹'-ind (eqC' i) ≡ eqfg i
+ 𝔹'-ind-R : ∀ i → 𝔹'-ind (eqR' i) ≡ eqg i
+
+ 𝔹'-ind-l L     = eqf
+ 𝔹'-ind-l R     = refl
+ 𝔹'-ind-l (η x) = refl
+
+ 𝔹'-ind-r L     = eqfg
+ 𝔹'-ind-r R     = eqg
+ 𝔹'-ind-r (η x) = refl
+
+ 𝔹'-ind-L = var-fixed-point-construction x (f L) eqf
+ 𝔹'-ind-C = path-construction (f R y) (g L x) eqfg
+ 𝔹'-ind-R = var-fixed-point-construction y (g R) eqg
+
+\end{code}
