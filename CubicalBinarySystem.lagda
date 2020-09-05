@@ -331,13 +331,6 @@ module _ {ℓ    : Level}
  𝔹-ind (eqC i) = {!!}
  𝔹-ind (eqR i) = {!!}
 
-
- blah : ∀ i → P (eqL i)
- blah i = transport (cong P p) x
-  where
-   p : L ≡ eqL i
-   p = eql i
-
 \end{code}
 
 Induction for the MLTT construction of the initial binary system:
