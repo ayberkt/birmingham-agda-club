@@ -343,9 +343,9 @@ module _ {ℓ    : Level}
          (y    : P R)
          (f    : (b : 𝔹') → P b → P (l' b))
          (g    : (b : 𝔹') → P b → P (r' b))
-         (eqf  : x ≡ f L x)
-         (eqfg : f R y ≡ g L x)
-         (eqg  : y ≡ g R y)
+         (eqf  : x ≡ f L x)       -- This is possible only because
+         (eqfg : f R y ≡ g L x)   -- the equations L ≡ l' L and r' L ≡ l' R
+         (eqg  : y ≡ g R y)       -- and R ≡ r' R hold definitionally.
        where
 
  𝔹'-ind : (b : 𝔹') → P b
