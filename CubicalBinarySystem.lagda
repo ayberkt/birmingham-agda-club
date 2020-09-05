@@ -375,9 +375,9 @@ module _ {ℓ    : Level}
        where
 
  𝔹'-ind : (b : 𝔹') → P b
- 𝔹'-ind L = x
- 𝔹'-ind R = y
- 𝔹'-ind (η c) = f R y
+ 𝔹'-ind L         = x
+ 𝔹'-ind R         = y
+ 𝔹'-ind (η c)     = f R y
  𝔹'-ind (η (l x)) = f (η x) (𝔹'-ind (η x))
  𝔹'-ind (η (r x)) = g (η x) (𝔹'-ind (η x))
 
