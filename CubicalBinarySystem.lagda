@@ -338,9 +338,9 @@ module _ {ℓ    : Level}
  𝔹-ind R = y
  𝔹-ind (l b) = f b (𝔹-ind b)
  𝔹-ind (r b) = g b (𝔹-ind b)
- 𝔹-ind (eqL i) = {!!}
- 𝔹-ind (eqC i) = {!!}
- 𝔹-ind (eqR i) = {!!}
+ 𝔹-ind (eqL i) = toPathP {A = λ j → P (eqL j)} eqf i
+ 𝔹-ind (eqC i) = toPathP {A = λ j → P (eqC j)} eqfg i
+ 𝔹-ind (eqR i) = toPathP {A = λ j → P (eqR j)} eqg i
 
 \end{code}
 
