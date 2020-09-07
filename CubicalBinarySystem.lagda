@@ -25,6 +25,7 @@ the initial binary system is a set.
 module CubicalBinarySystem where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
 
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
@@ -462,26 +463,53 @@ cases f g p (eqL i) = f L
 cases f g p (eqC i) = p i
 cases f g p (eqR i) = g R
 
+path-lemma : ∀ {ℓ} {X : Type ℓ} → (h : 𝔹 → X) → {fL : X} → {x y : 𝔹} → (p : x ≡ y) → (uL : h y ≡ fL) → PathP (λ i → h (p i) ≡ fL) (cong h p ∙ uL) uL
+path-lemma h p uL i j = hcomp (λ k → λ { (i = i1) → uL (j ∧ k)
+                                       ; (j = i0) → h (p i)
+                                       ; (j = i1) → uL k })
+                              (h (p (i ∨ j)))
+
+compatible-higher : {X : Type ℓ}
+                    (f g : 𝔹 → X)
+                    (p : compatible f g)
+                    (h : 𝔹 → X)
+                    (u : h ∘ l ∼ f)
+                    (v : h ∘ r ∼ g)
+                  → Type ℓ
+compatible-higher f g p h u v = Square (u R) (v L) (cong h eqC) p
+
 cases-uniqueness : {X : Type ℓ}
                    (f g : 𝔹 → X)
                    (p : compatible f g)
                    (h : 𝔹 → X)
                    (u : h ∘ l ∼ f)
                    (v : h ∘ r ∼ g)
+                 → compatible-higher f g p h u v
                  → h ∼ cases f g p
-cases-uniqueness f g p h u v L = q
+cases-uniqueness f g p h u v c L = q
  where
   q : h L ≡ f L
   q = cong h eqL ∙ u L
-cases-uniqueness f g p h u v R = q
+cases-uniqueness f g p h u v c R = q
  where
   q : h R ≡ g R
   q = cong h eqR ∙ v R
-cases-uniqueness f g p h u v (l x) = u x
-cases-uniqueness f g p h u v (r x) = v x
-cases-uniqueness f g p h u v (eqL i) = {!!}
-cases-uniqueness f g p h u v (eqC i) = {!!}
-cases-uniqueness f g p h u v (eqR i) = {!!}
+cases-uniqueness f g p h u v c (l x) = u x
+cases-uniqueness f g p h u v c (r x) = v x
+cases-uniqueness f g p h u v c (eqL i) = path-lemma h eqL (u L) i
+cases-uniqueness f g p h u v c (eqC i) = c i
+cases-uniqueness f g p h u v c (eqR i) = path-lemma h eqR (v R) i
+
+cases-uniqueness-set : {X : Type ℓ}
+                       (f g : 𝔹 → X)
+                       (p : compatible f g)
+                       (h : 𝔹 → X)
+                       (u : h ∘ l ∼ f)
+                       (v : h ∘ r ∼ g)
+                     → isSet X
+                     → h ∼ cases f g p
+cases-uniqueness-set f g p h u v isSetX =
+  cases-uniqueness f g p h u v (isSet→isSet' isSetX (u R) (v L) (cong h eqC) p)
 
 
 m : 𝔹 → 𝔹
@@ -491,11 +519,10 @@ m = cases (l ∘ r) (r ∘ l) p
   p = cong l (sym eqR) ∙ eqC ∙ cong r eqL
 
 left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
-left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl)
-
+left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl) (λ i → refl)
 
 right-by-cases : r ∼ cases (m ∘ r) (r ∘ r) (cong r eqC)
-right-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqC) r (λ x → refl) (λ x → refl)
+right-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqC) r (λ x → refl) (λ x → refl) (λ i → refl)
 
 is-𝓛-function : (𝔹 → 𝔹) → Type ℓ-zero
 is-𝓛-function f = compatible (l ∘ f) (m ∘ f)
@@ -529,11 +556,6 @@ being-𝓛𝓡-function-is-prop f = {!!} -- ×-is-prop 𝔹-is-set 𝔹-is-set
 
 F : Type ℓ-zero
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
-
-F-is-set : isSet F
-F-is-set = {!!} {- subsets-of-sets-are-sets (𝕄 → 𝕄) is-𝓛𝓡-function
-            (Π-is-set fe (λ _ → 𝕄-is-set))
-            (λ {f} → being-𝓛𝓡-function-is-prop f) -}
 
 𝑙 𝑟 : F → F
 𝑙 (f , (a , b)) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
@@ -598,6 +620,5 @@ x ⊕ y = fst (mid x) y
            → (l (x ⊕ R) ≡ m (x ⊕ L))
            × (m (x ⊕ R) ≡ r (x ⊕ L))
 ⊕-property x = snd (mid x)
-
 
 \end{code}
