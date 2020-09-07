@@ -16,7 +16,9 @@ and also in pure MLTT, and we show that, in cubical type theory, the
 two definitions give equivalent types.
 
 The main motivation for the investigation in this file is to know
-whether the initial binary system is a set, as intended.
+whether the initial binary system is a set, as intended, which is
+indeed the case, as shown below, using the equivalence of the cubical
+and MLTT definition of the initial binary system.
 
 \begin{code}
 
@@ -37,9 +39,6 @@ open import Cubical.Foundations.GroupoidLaws
 
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
-
-idp : {X : Type ℓ} (x : X) → x ≡ x
-idp x = refl
 
 Sigma : (X : Type ℓ) (A : X → Type ℓ') → Type (ℓ-max ℓ ℓ')
 Sigma = Σ
