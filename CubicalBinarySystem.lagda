@@ -634,16 +634,16 @@ m = cases (l ∘ r) (r ∘ l) p
   p : l (r R) ≡ r (l L)
   p = cong l (sym eqR) ∙∙ eqC ∙∙ cong r eqL
 
-left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
-left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl) (λ i → refl)
+l-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
+l-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl) (λ i → refl)
 
-right-by-cases : r ∼ cases (m ∘ r) (r ∘ r) (cong r eqC)
-right-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqC) r (λ x → refl) (λ x → refl) (λ i → refl)
+r-by-cases : r ∼ cases (m ∘ r) (r ∘ r) (cong r eqC)
+r-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqC) r (λ x → refl) (λ x → refl) (λ i → refl)
 
-is-𝓛-function : (𝔹 → 𝔹) → Type ℓ-zero
+is-𝓛-function : (𝔹 → 𝔹) → Type₀
 is-𝓛-function f = compatible (l ∘ f) (m ∘ f)
 
-is-𝓡-function : (𝔹 → 𝔹) → Type ℓ-zero
+is-𝓡-function : (𝔹 → 𝔹) → Type₀
 is-𝓡-function f = compatible (m ∘ f) (r ∘ f)
 
 𝓛 : (f : 𝔹 → 𝔹) → is-𝓛-function f → (𝔹 → 𝔹)
@@ -664,7 +664,7 @@ preservation-𝓡𝓛 f a b = cong m a
 preservation-𝓡𝓡 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓡-function (𝓡 f b)
 preservation-𝓡𝓡 f a b = cong r a
 
-is-𝓛𝓡-function : (𝔹 → 𝔹) → Type ℓ-zero
+is-𝓛𝓡-function : (𝔹 → 𝔹) → Type₀
 is-𝓛𝓡-function f = is-𝓛-function f × is-𝓡-function f
 
 being-𝓛𝓡-function-is-prop : (f : 𝔹 → 𝔹) → isProp (is-𝓛𝓡-function f)
@@ -673,10 +673,6 @@ being-𝓛𝓡-function-is-prop f = isProp× (𝔹-is-set (l (f R)) (m (f L))) (
 F : Type₀
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 
-𝑙 𝑟 : F → F
-𝑙 (f , (a , b)) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
-𝑟 (f , (a , b)) = 𝓡 f b , preservation-𝓡𝓛 f a b , preservation-𝓡𝓡 f a b
-
 eqm : l (r R) ≡ r (l L)
 eqm = cong l (sym eqR) ∙ eqC ∙ cong r eqL
 
@@ -684,14 +680,18 @@ eqm = cong l (sym eqR) ∙ eqC ∙ cong r eqL
 𝐿 = l , cong l eqC , eqm
 𝑅 = r , eqm , cong r eqC
 
-F-eq-l : 𝐿 ≡ 𝑙 𝐿
-F-eq-l = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
+𝑙 𝑟 : F → F
+𝑙 (f , (a , b)) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
+𝑟 (f , (a , b)) = 𝓡 f b , preservation-𝓡𝓛 f a b , preservation-𝓡𝓡 f a b
+
+eq𝐿 : 𝐿 ≡ 𝑙 𝐿
+eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
  where
   a : l ∼ 𝓛 l (cong l eqC)
-  a = left-by-cases
+  a = l-by-cases
 
-F-eq-lr : 𝑙 𝑅 ≡ 𝑟 𝐿
-F-eq-lr = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a')
+eq𝐶 : 𝑙 𝑅 ≡ 𝑟 𝐿
+eq𝐶 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a')
  where
   a : cases (l ∘ r) (m ∘ r) eqm ∼ cases (m ∘ l) (r ∘ l) eqm
   a = cases-uniqueness (m ∘ l) (r ∘ l) eqm (cases (l ∘ r) (m ∘ r) eqm) (λ _ → refl) (λ _ → refl) (λ _ → refl)
@@ -699,14 +699,14 @@ F-eq-lr = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a')
   a' : 𝓛 r eqm ∼ 𝓡 l eqm
   a' = a
 
-F-eq-r : 𝑅 ≡ 𝑟 𝑅
-F-eq-r = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
+eq𝑅 : 𝑅 ≡ 𝑟 𝑅
+eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
  where
   a : r ∼ 𝓡 r (cong r eqC)
-  a = right-by-cases
+  a = r-by-cases
 
 mid : 𝔹 → F
-mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 F-eq-l F-eq-lr F-eq-r
+mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 eq𝐿 eq𝐶 eq𝑅
 
 _⊕_ : 𝔹 → 𝔹 → 𝔹
 x ⊕ y = fst (mid x) y
@@ -716,7 +716,7 @@ x ⊕ y = fst (mid x) y
            × (m (x ⊕ R) ≡ r (x ⊕ L))
 ⊕-property x = snd (mid x)
 
-⊕-equations : (x y : 𝔹)
+⊕-defining-equations : (x y : 𝔹)
    → (  L   ⊕ y   ≡ l y        )
    × (  R   ⊕ y   ≡ r y        )
    × (  l x ⊕ L   ≡ l (x ⊕ L)  )
@@ -727,7 +727,13 @@ x ⊕ y = fst (mid x) y
    × (  r x ⊕ L   ≡ m (x ⊕ L)  )
    × (  r x ⊕ l y ≡ m (x ⊕ y)  )
    × (  r x ⊕ r y ≡ r (x ⊕ y)  )
-⊕-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
+⊕-defining-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
+
+\end{code}
+
+We now prove the midpoint equations:
+
+\begin{code}
 
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
 ⊕-idemp = 𝔹-ind-prop (λ x → x ≡ x ⊕ x)
