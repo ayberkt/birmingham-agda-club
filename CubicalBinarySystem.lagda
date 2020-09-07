@@ -772,4 +772,62 @@ mid2R (eqL i) = isSet→isSet' 𝔹-is-set (sym eqC) (λ _ → r (l L)) (cong r 
 mid2R (eqC i) = refl
 mid2R (eqR i) = refl
 
+mid3 : 𝔹 → 𝔹 → 𝔹
+mid3L : ∀ x → l (mid3 x R) ≡ m (mid3 x L)
+mid3R : ∀ x → m (mid3 x R) ≡ r (mid3 x L)
+
+mid3 L y = l y
+mid3 R y = r y
+mid3 (l x) L = l (mid3 x L)
+mid3 (l x) R = m (mid3 x R)
+mid3 (l x) (l y) = l (mid3 x y)
+mid3 (l x) (r y) = m (mid3 x y)
+mid3 (l x) (eqL i) = l (mid3 x L)
+mid3 (l x) (eqC i) = mid3L x i
+mid3 (l x) (eqR i) = m (mid3 x R)
+mid3 (r x) L = m (mid3 x L)
+mid3 (r x) R = r (mid3 x R)
+mid3 (r x) (l y) = m (mid3 x y)
+mid3 (r x) (r y) = r (mid3 x y)
+mid3 (r x) (eqL i) = m (mid3 x L)
+mid3 (r x) (eqC i) = mid3R x i
+mid3 (r x) (eqR i) = r (mid3 x R)
+mid3 (eqL i) L = l (eqL i)
+mid3 (eqL i) R = l (eqR i)
+mid3 (eqL i) (l y) = l (l y)
+mid3 (eqL i) (r y) = l (r y)
+mid3 (eqL i) (eqL j) = l (eqL (i ∨ j))
+mid3 (eqL i) (eqC j) = l (eqC j)
+mid3 (eqL i) (eqR j) = l (eqR (i ∨ j))
+mid3 (eqC i) L = l (r L)
+mid3 (eqC i) R = r (l R)
+mid3 (eqC i) (l y) = l (r y)
+mid3 (eqC i) (r y) = r (l y)
+mid3 (eqC i) (eqL j) = l (r L)
+mid3 (eqC i) (eqC j) = m (eqC j)
+mid3 (eqC i) (eqR j) = r (l R)
+mid3 (eqR i) L = r (eqL i)
+mid3 (eqR i) R = r (eqR i)
+mid3 (eqR i) (l y) = r (l y)
+mid3 (eqR i) (r y) = r (r y)
+mid3 (eqR i) (eqL j) = r (eqL (i ∨ j))
+mid3 (eqR i) (eqC j) = r (eqC j)
+mid3 (eqR i) (eqR j) = r (eqR (i ∨ j))
+
+mid3L L = cong l eqC
+mid3L R = cong m eqC
+mid3L (l x) = cong l (mid3R x)
+mid3L (r x) = cong m (mid3L x)
+mid3L (eqL i) = cong l (coherence-lem i)
+mid3L (eqC i) = cong (l ∘ r) eqC
+mid3L (eqR i) = cong m (coherence-lem i)
+
+mid3R L = cong m eqC
+mid3R R = cong r eqC
+mid3R (l x) = cong m (mid3R x)
+mid3R (r x) = cong r (mid3L x)
+mid3R (eqL i) = cong m (coherence-lem i)
+mid3R (eqC i) = cong (r ∘ l) eqC
+mid3R (eqR i) = cong r (coherence-lem i)
+
 \end{code}
