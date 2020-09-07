@@ -7,9 +7,9 @@ George Kaye, Owen Milner and Ayberk Tosun.
 See the file https://www.cs.bham.ac.uk/~mhe/TypeTopology/InitialBinarySystem.html
 for background.
 
-The initial binary system gives the closed interval of dyadic numbers,
-and also gives the free midpoint algebra over two generators (this
-still needs to be coded in Agda).
+The initial binary system gives the closed interval of dyadic
+rationals, and also gives the free midpoint algebra over two
+generators (this second point still needs to be coded in Agda).
 
 We define the initial binary system as a HIT, in cubical type theory,
 and also in pure MLTT, and we show that, in cubical type theory, the
@@ -80,9 +80,9 @@ data 𝔹 : Type₀ where
 
 And now the initial binary system defined in pure MLTT.
 
-We first define an auxiliary data type 𝔻, where c is supposed to be
-the common point in the images of l and r given by the identification
-eqC:
+We first define an auxiliary data type 𝔻, where center is supposed to
+be the common point in the images of l and r given by the
+identification eqC:
 
 \begin{code}
 
@@ -123,7 +123,9 @@ r' (η x) = η (right x)
 \end{code}
 
 As opposed to the HIT construction, the binary system equations hold
-definitionally in our MLTT construction:
+definitionally in our MLTT construction (but then other things that
+hold definitionally for the cubical HIT will hold up to a path in the
+MLTT construction):
 
 \begin{code}
 
@@ -787,6 +789,17 @@ x ⊕ y = fst (mid x) y
                        R ⊕ r x ∎)
                       (λ y _ → cong m (h y))
                       (λ y _ → cong r (h y))
+
+{- l x ⊕ m y = (L ⊕ x) ⊕ m y = -}
+
+switch-l-m : (x y : 𝔹) → l x ⊕ m y ≡ m x ⊕ l y
+switch-l-m x y = 𝔹-ind-prop (λ y → l x ⊕ m y ≡ m x ⊕ l y)
+                             (λ y → 𝔹-is-set (l x ⊕ m y) (m x ⊕ l y))
+                             {!!}
+                             {!!}
+                             {!!}
+                             {!!}
+                             {!!}
 
 \end{code}
 
