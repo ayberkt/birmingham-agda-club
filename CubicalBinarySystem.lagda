@@ -627,4 +627,17 @@ x ⊕ y = fst (mid x) y
            × (m (x ⊕ R) ≡ r (x ⊕ L))
 ⊕-property x = snd (mid x)
 
+mid-equations : (x y : 𝔹)
+   → (  L   ⊕ y   ≡ l y        )
+   × (  R   ⊕ y   ≡ r y        )
+   × (  l x ⊕ L   ≡ l (x ⊕ L)  )
+   × (  l x ⊕ R   ≡ m (x ⊕ R)  )
+   × (  l x ⊕ l y ≡ l (x ⊕ y)  )
+   × (  l x ⊕ r y ≡ m (x ⊕ y)  )
+   × (  r x ⊕ R   ≡ r (x ⊕ R)  )
+   × (  r x ⊕ L   ≡ m (x ⊕ L)  )
+   × (  r x ⊕ l y ≡ m (x ⊕ y)  )
+   × (  r x ⊕ r y ≡ r (x ⊕ y)  )
+mid-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
+
 \end{code}
