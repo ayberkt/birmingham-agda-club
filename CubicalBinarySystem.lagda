@@ -167,7 +167,7 @@ for the path constructors eqL, eqC and eqR, for which hcomp is used:
 path-construction : {ℓ : Level} {X : Type ℓ}
                     (x y : X)
                     (p : x ≡ y)
-                  → (i : I) → x ≡ p i
+                  → PathP (λ i → x ≡ p i) (refl ∙ refl) (p ∙ refl)
 path-construction x y p i j = hcomp (λ k → λ { (j = i0) → x
                                              ; (j = i1) → p i })
                                     (p (i ∧ j))
@@ -176,7 +176,7 @@ fixed-point-construction : {ℓ : Level} {X : Type ℓ}
                            (x : X)
                            (f : X → X)
                            (p : x ≡ f x)
-                         → (i : I) → x ≡ p i
+                         → PathP (λ i → x ≡ p i) (refl ∙ refl) (p ∙ refl)
 fixed-point-construction x f = path-construction x (f x)
 
 \end{code}
@@ -191,7 +191,7 @@ var-fixed-point-construction : {ℓ : Level} {X : Type ℓ}
                                (x : X)
                                (f : X → X)
                                (p : x ≡ f x)
-                             → (i : I) → x ≡ p i
+                             → PathP (λ i → x ≡ p i) refl (p ∙ refl)
 var-fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
                                                         ; (j = i0) → x
                                                         ; (j = i1) → p i })
@@ -203,9 +203,9 @@ paths, which in turn are used to construct γϕ below:
 
 \begin{code}
 
-eql : (i : I) → L   ≡ eqL i
-eqc : (i : I) → l R ≡ eqC i
-eqr : (i : I) → R   ≡ eqR i
+eql : PathP (λ i → L   ≡ eqL i) refl (eqL ∙ refl)
+eqc : PathP (λ i → l R ≡ eqC i) (refl ∙ refl) (eqC ∙ refl)
+eqr : PathP (λ i → R   ≡ eqR i) refl (eqR ∙ refl)
 
 eql = var-fixed-point-construction L l eqL
 eqc = path-construction (l R) (r L) eqC
@@ -294,9 +294,9 @@ The desired equations for 𝔹'-rec hold, but not definitionally:
  𝔹'-rec-r R     = eqg
  𝔹'-rec-r (η x) = refl
 
- 𝔹'-rec-L = var-fixed-point-construction x f eqf
- 𝔹'-rec-C = path-construction (f y) (g x) eqfg
- 𝔹'-rec-R = var-fixed-point-construction y g eqg
+ 𝔹'-rec-L i = var-fixed-point-construction x f eqf i
+ 𝔹'-rec-C i = path-construction (f y) (g x) eqfg i
+ 𝔹'-rec-R i = var-fixed-point-construction y g eqg i
 
 \end{code}
 
@@ -378,9 +378,9 @@ module _ {ℓ    : Level}
  𝔹'-ind-r R     = eqg
  𝔹'-ind-r (η x) = refl
 
- 𝔹'-ind-L = var-fixed-point-construction x (f L) eqf
- 𝔹'-ind-C = path-construction (f R y) (g L x) eqfg
- 𝔹'-ind-R = var-fixed-point-construction y (g R) eqg
+ 𝔹'-ind-L i = var-fixed-point-construction x (f L) eqf i
+ 𝔹'-ind-C i = path-construction (f R y) (g L x) eqfg i
+ 𝔹'-ind-R i = var-fixed-point-construction y (g R) eqg i
 
 \end{code}
 
@@ -393,11 +393,11 @@ m L = l (r L)
 m R = r (l R)
 m (l x) = l (r x)
 m (r x) = r (l x)
-m (eqL i) = refl {ℓ-zero} {𝔹} {l (r L)} i
+m (eqL i) = l (r L)
 m (eqC i) = p i
  where
   p : l (r R) ≡ r (l L)
   p = cong l (sym eqR) ∙ eqC ∙ cong r eqL
-m (eqR i) = refl {ℓ-zero} {𝔹} {r (l R)} i
+m (eqR i) = r (l R)
 
 \end{code}
