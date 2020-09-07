@@ -463,7 +463,13 @@ cases f g p (eqL i) = f L
 cases f g p (eqC i) = p i
 cases f g p (eqR i) = g R
 
-path-lemma : ∀ {ℓ} {X : Type ℓ} → (h : 𝔹 → X) → {fL : X} → {x y : 𝔹} → (p : x ≡ y) → (uL : h y ≡ fL) → PathP (λ i → h (p i) ≡ fL) (cong h p ∙ uL) uL
+path-lemma : {X : Type ℓ}
+             (h : 𝔹 → X)
+             {fL : X}
+             {x y : 𝔹}
+             (p : x ≡ y)
+             (uL : h y ≡ fL)
+           → PathP (λ i → h (p i) ≡ fL) (cong h p ∙ uL) uL
 path-lemma h p uL i j = hcomp (λ k → λ { (i = i1) → uL (j ∧ k)
                                        ; (j = i0) → h (p i)
                                        ; (j = i1) → uL k })
