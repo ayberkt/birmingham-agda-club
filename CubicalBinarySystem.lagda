@@ -99,9 +99,9 @@ right endpoints to 𝔻, as 𝟙 + 𝟙 + 𝔻, where 𝟙 is the unit type:
 \begin{code}
 
 data 𝔹' : Type₀ where
- L : 𝔹'
- R : 𝔹'
- η : 𝔻 → 𝔹'
+ L' : 𝔹'
+ R' : 𝔹'
+ η  : 𝔻 → 𝔹'
 
 \end{code}
 
@@ -111,13 +111,13 @@ corresponding to the constructors l and r of 𝔹:
 \begin{code}
 
 l' : 𝔹' → 𝔹'
-l' L     = L
-l' R     = η center
+l' L'    = L'
+l' R'    = η center
 l' (η x) = η (left x)
 
 r' : 𝔹' → 𝔹'
-r' L     = η center
-r' R     = R
+r' L'    = η center
+r' R'    = R'
 r' (η x) = η (right x)
 
 \end{code}
@@ -129,9 +129,9 @@ MLTT construction):
 
 \begin{code}
 
-eqL' : L    ≡ l' L
-eqC' : l' R ≡ r' L
-eqR' : R    ≡ r' R
+eqL' : L'    ≡ l' L'
+eqC' : l' R' ≡ r' L'
+eqR' : R'    ≡ r' R'
 
 eqL' = refl
 eqC' = refl
@@ -143,9 +143,9 @@ We also have:
 
 \begin{code}
 
-eql' : (i : I) → L    ≡ eqL' i
-eqc' : (i : I) → l' R ≡ eqC' i
-eqr' : (i : I) → R    ≡ eqR' i
+eql' : (i : I) → L'    ≡ eqL' i
+eqc' : (i : I) → l' R' ≡ eqC' i
+eqr' : (i : I) → R'    ≡ eqR' i
 
 eql' i = refl
 eqc' i = refl
@@ -162,8 +162,8 @@ pair of mutually inverse maps φ and γ:
 \begin{code}
 
 φ : 𝔹 → 𝔹'
-φ L       = L
-φ R       = R
+φ L       = L'
+φ R       = R'
 φ (l x)   = l' (φ x)
 φ (r x)   = r' (φ x)
 φ (eqL i) = eqL' i
@@ -171,8 +171,8 @@ pair of mutually inverse maps φ and γ:
 φ (eqR i) = eqR' i
 
 γ : 𝔹' → 𝔹
-γ L             = L
-γ R             = R
+γ L'            = L
+γ R'            = R
 γ (η center)    = l R
 γ (η (left y))  = l (γ (η y))
 γ (η (right y)) = r (γ (η y))
@@ -184,8 +184,8 @@ That φ is a left inverse of γ is easy, by induction on 𝔹':
 \begin{code}
 
 φγ : (y : 𝔹') → φ (γ y) ≡ y
-φγ L     = refl
-φγ R     = refl
+φγ L'    = refl
+φγ R'    = refl
 φγ (η y) = δ y
  where
   δ : (y : 𝔻) → φ (γ (η y)) ≡ η y
@@ -201,13 +201,13 @@ and r as in the following two commutative squares:
 \begin{code}
 
 square-l : (y : 𝔹') → γ (l' y) ≡ l (γ y)
-square-l L     = eqL
-square-l R     = refl
+square-l L'    = eqL
+square-l R'    = refl
 square-l (η x) = refl
 
 square-r : (y : 𝔹') → γ (r' y) ≡ r (γ y)
-square-r L     = eqC
-square-r R     = eqR
+square-r L'    = eqC
+square-r R'    = eqR
 square-r (η x) = refl
 
 \end{code}
@@ -289,13 +289,13 @@ We now prove that 𝔹 is a set.
 
 private
  cancellr : 𝔻 → 𝔻
- cancellr center = center -- arbitrary
- cancellr (left x) = x
+ cancellr center    = center -- arbitrary
+ cancellr (left x)  = x
  cancellr (right x) = x
 
  cancelη : 𝔹' → 𝔻
- cancelη L = center -- arbitrary
- cancelη R = center -- arbitrary
+ cancelη L'    = center -- arbitrary
+ cancelη R'    = center -- arbitrary
  cancelη (η x) = x
 
 left-lc : {x y : 𝔻} → left x ≡ left y → x ≡ y
@@ -337,34 +337,34 @@ center-is-not-right p = transport (cong isCenter p) *
 η-lc : {x y : 𝔻} → η x ≡ η y → x ≡ y
 η-lc = cong cancelη
 
-is-L : 𝔹' → Type₀
-is-L L     = 𝟙
-is-L R     = 𝟘
-is-L (η x) = 𝟘
+is-L' : 𝔹' → Type₀
+is-L' L'    = 𝟙
+is-L' R'    = 𝟘
+is-L' (η x) = 𝟘
 
 is-η : 𝔹' → Type₀
-is-η L     = 𝟘
-is-η R     = 𝟘
+is-η L'    = 𝟘
+is-η R'    = 𝟘
 is-η (η x) = 𝟙
 
-L-is-not-R : ¬ L ≡ R
-L-is-not-R p = transport (cong is-L p) *
+L'-is-not-R' : ¬ L' ≡ R'
+L'-is-not-R' p = transport (cong is-L' p) *
 
-L-is-not-η : {x : 𝔻} → ¬ L ≡ η x
-L-is-not-η p = transport (cong is-L p) *
+L'-is-not-η : {x : 𝔻} → ¬ L' ≡ η x
+L'-is-not-η p = transport (cong is-L' p) *
 
-η-is-not-R : {x : 𝔻} → ¬ η x ≡ R
-η-is-not-R p = transport (cong is-η p) *
+η-is-not-R' : {x : 𝔻} → ¬ η x ≡ R'
+η-is-not-R' p = transport (cong is-η p) *
 
 𝔹'-is-discrete : Discrete 𝔹'
-𝔹'-is-discrete L     L     = yes refl
-𝔹'-is-discrete L     R     = no L-is-not-R
-𝔹'-is-discrete L     (η x) = no L-is-not-η
-𝔹'-is-discrete R     L     = no (L-is-not-R ∘ sym)
-𝔹'-is-discrete R     R     = yes refl
-𝔹'-is-discrete R     (η x) = no (η-is-not-R ∘ sym)
-𝔹'-is-discrete (η x) L     = no (L-is-not-η ∘ sym)
-𝔹'-is-discrete (η x) R     = no η-is-not-R
+𝔹'-is-discrete L'    L'    = yes refl
+𝔹'-is-discrete L'    R'    = no L'-is-not-R'
+𝔹'-is-discrete L'    (η x) = no L'-is-not-η
+𝔹'-is-discrete R'    L'    = no (L'-is-not-R' ∘ sym)
+𝔹'-is-discrete R'    R'    = yes refl
+𝔹'-is-discrete R'    (η x) = no (η-is-not-R' ∘ sym)
+𝔹'-is-discrete (η x) L'    = no (L'-is-not-η ∘ sym)
+𝔹'-is-discrete (η x) R'    = no η-is-not-R'
 𝔹'-is-discrete (η x) (η y) = mapDec (cong η) (λ ν p → ν (η-lc p)) (𝔻-is-discrete x y)
 
 𝔹'-is-set : isSet 𝔹'
@@ -401,8 +401,8 @@ module _  {ℓ    : Level}
  𝔹-rec (eqR i) = eqg i
 
  𝔹'-rec : 𝔹' → X
- 𝔹'-rec L             = x
- 𝔹'-rec R             = y
+ 𝔹'-rec L'            = x
+ 𝔹'-rec R'            = y
  𝔹'-rec (η center)    = f y -- Or g x, but then we need to adapt the definitions below.
  𝔹'-rec (η (left x))  = f (𝔹'-rec (η x))
  𝔹'-rec (η (right x)) = g (𝔹'-rec (η x))
@@ -420,12 +420,12 @@ The desired equations for 𝔹'-rec hold, but not definitionally:
  𝔹'-rec-C : ∀ i → 𝔹'-rec (eqC' i) ≡ eqfg i
  𝔹'-rec-R : ∀ i → 𝔹'-rec (eqR' i) ≡ eqg i
 
- 𝔹'-rec-l L     = eqf
- 𝔹'-rec-l R     = refl
+ 𝔹'-rec-l L'    = eqf
+ 𝔹'-rec-l R'    = refl
  𝔹'-rec-l (η x) = refl
 
- 𝔹'-rec-r L     = eqfg
- 𝔹'-rec-r R     = eqg
+ 𝔹'-rec-r L'    = eqfg
+ 𝔹'-rec-r R'    = eqg
  𝔹'-rec-r (η x) = refl
 
  𝔹'-rec-L i = fixed-point-construction x f eqf i
@@ -495,19 +495,19 @@ Induction for the MLTT construction of the initial binary system:
 
 module _ {ℓ    : Level}
          (P    : 𝔹' → Type ℓ)
-         (x    : P L)
-         (y    : P R)
+         (x    : P L')
+         (y    : P R')
          (f    : (b : 𝔹') → P b → P (l' b))
          (g    : (b : 𝔹') → P b → P (r' b))
-         (eqf  : x ≡ f L x)       -- This is possible only because
-         (eqfg : f R y ≡ g L x)   -- the equations L ≡ l' L and r' L ≡ l' R
-         (eqg  : y ≡ g R y)       -- and R ≡ r' R hold definitionally.
+         (eqf  : x ≡ f L' x)      -- This is possible only because
+         (eqfg : f R' y ≡ g L' x) -- the equations L' ≡ l' L' and r' L' ≡ l' R'
+         (eqg  : y ≡ g R' y)      -- and R' ≡ r' R' hold definitionally.
        where
 
  𝔹'-ind : (b : 𝔹') → P b
- 𝔹'-ind L             = x
- 𝔹'-ind R             = y
- 𝔹'-ind (η center)    = f R y
+ 𝔹'-ind L'            = x
+ 𝔹'-ind R'            = y
+ 𝔹'-ind (η center)    = f R' y
  𝔹'-ind (η (left x))  = f (η x) (𝔹'-ind (η x))
  𝔹'-ind (η (right x)) = g (η x) (𝔹'-ind (η x))
 
@@ -530,17 +530,17 @@ With the following proofs:
 
 \begin{code}
 
- 𝔹'-ind-l L     = eqf
- 𝔹'-ind-l R     = refl
+ 𝔹'-ind-l L'    = eqf
+ 𝔹'-ind-l R'    = refl
  𝔹'-ind-l (η x) = refl
 
- 𝔹'-ind-r L     = eqfg
- 𝔹'-ind-r R     = eqg
+ 𝔹'-ind-r L'    = eqfg
+ 𝔹'-ind-r R'    = eqg
  𝔹'-ind-r (η x) = refl
 
- 𝔹'-ind-L i = fixed-point-construction x (f L) eqf i
- 𝔹'-ind-C i = path-construction (f R y) (g L x) eqfg i
- 𝔹'-ind-R i = fixed-point-construction y (g R) eqg i
+ 𝔹'-ind-L i = fixed-point-construction x (f L') eqf i
+ 𝔹'-ind-C i = path-construction (f R' y) (g L' x) eqfg i
+ 𝔹'-ind-R i = fixed-point-construction y (g R') eqg i
 
 \end{code}
 
