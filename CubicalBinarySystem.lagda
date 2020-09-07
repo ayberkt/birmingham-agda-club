@@ -279,6 +279,8 @@ Notice that a binary system homomorphism, in this ∞-setting, is a
 function that commutes not only with L, R, l, r, but also with eqL,
 eqC and eqR.
 
+We now prove that 𝔹 is a set.
+
 \begin{code}
 
 private
@@ -351,14 +353,14 @@ L-is-not-η p = transport (cong is-L p) *
 η-is-not-R p = transport (cong is-η p) *
 
 𝔹'-is-discrete : Discrete 𝔹'
-𝔹'-is-discrete L L = yes refl
-𝔹'-is-discrete L R = no L-is-not-R
-𝔹'-is-discrete L (η x) = no L-is-not-η
-𝔹'-is-discrete R L = no (L-is-not-R ∘ sym)
-𝔹'-is-discrete R R = yes refl
-𝔹'-is-discrete R (η x) = no (η-is-not-R ∘ sym)
-𝔹'-is-discrete (η x) L = no (L-is-not-η ∘ sym)
-𝔹'-is-discrete (η x) R = no η-is-not-R
+𝔹'-is-discrete L     L     = yes refl
+𝔹'-is-discrete L     R     = no L-is-not-R
+𝔹'-is-discrete L     (η x) = no L-is-not-η
+𝔹'-is-discrete R     L     = no (L-is-not-R ∘ sym)
+𝔹'-is-discrete R     R     = yes refl
+𝔹'-is-discrete R     (η x) = no (η-is-not-R ∘ sym)
+𝔹'-is-discrete (η x) L     = no (L-is-not-η ∘ sym)
+𝔹'-is-discrete (η x) R     = no η-is-not-R
 𝔹'-is-discrete (η x) (η y) = mapDec (cong η) (λ ν p → ν (η-lc p)) (𝔻-is-discrete x y)
 
 𝔹'-is-set : isSet 𝔹'
@@ -371,7 +373,6 @@ L-is-not-η p = transport (cong is-L p) *
 𝔹-is-set = isOfHLevelRespectEquiv 2 𝔹'-is-equiv-to-𝔹 𝔹'-is-set
 
 \end{code}
-
 
 We now consider recursion and then, more generally, induction.
 
@@ -639,7 +640,7 @@ is-𝓛𝓡-function : (𝔹 → 𝔹) → Type ℓ-zero
 is-𝓛𝓡-function f = is-𝓛-function f × is-𝓡-function f
 
 being-𝓛𝓡-function-is-prop : (f : 𝔹 → 𝔹) → isProp (is-𝓛𝓡-function f)
-being-𝓛𝓡-function-is-prop f = {!!} -- ×-is-prop 𝔹-is-set 𝔹-is-set
+being-𝓛𝓡-function-is-prop f = isProp× (𝔹-is-set (l (f R)) (m (f L))) (𝔹-is-set (m (f R)) (r (f L)))
 
 F : Type ℓ-zero
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
@@ -656,46 +657,37 @@ eqm = cong l (sym eqR) ∙ eqC ∙ cong r eqL
 𝑅 = r , eqm , cong r eqC
 
 F-eq-l : 𝐿 ≡ 𝑙 𝐿
-F-eq-l = {!!} {- to-subtype-≡ being-𝓛𝓡-function-is-prop γ
+F-eq-l = ΣProp≡ being-𝓛𝓡-function-is-prop b
  where
-  δ : left ∼ 𝓛 left refl
-  δ = left-by-cases
+  a : l ∼ 𝓛 l (cong l eqC)
+  a = left-by-cases
 
-  γ : left ≡ 𝓛 left refl
-  γ = dfunext fe δ
--}
+  b : l ≡ 𝓛 l (cong l eqC)
+  b = funExt a
+
 
 F-eq-lr : 𝑙 𝑅 ≡ 𝑟 𝐿
-F-eq-lr = {!!} {- to-subtype-≡ being-𝓛𝓡-function-is-prop v
+F-eq-lr = ΣProp≡ being-𝓛𝓡-function-is-prop v
  where
-  i = λ (x : 𝕄) → 𝕄𝕄-cases (left ∘ right) (center ∘ right) refl (left x) ≡⟨ 𝕄-cases-l _ _ (𝕄-is-set , refl) x ⟩
-                  left (right x)                                           ≡⟨ (center-l x)⁻¹ ⟩
-                  center (left x)                                          ∎
+  iii : cases (l ∘ r) (m ∘ r) eqm ∼ cases (m ∘ l) (r ∘ l) eqm
+  iii = cases-uniqueness (m ∘ l) (r ∘ l) eqm (cases (l ∘ r) (m ∘ r) eqm) (λ _ → refl) (λ _ → refl) λ _ → refl
 
-  ii =  λ (x : 𝕄) → 𝕄𝕄-cases (left ∘ right) (center ∘ right) refl (right x)   ≡⟨ 𝕄-cases-r _ _ (𝕄-is-set , refl) x ⟩
-                    center (right x)                                          ≡⟨ center-r x ⟩
-                    right (left x)                                            ∎
-
-  iii : 𝕄𝕄-cases (left ∘ right)  (center ∘ right) refl
-      ∼ 𝕄𝕄-cases (center ∘ left) (right ∘ left)   refl
-  iii = 𝕄-cases-uniqueness _ _ (𝕄-is-set , refl) (𝕄𝕄-cases _ _ refl) (i , ii)
-
-  iv : 𝓛 right refl ∼ 𝓡 left refl
+  iv : 𝓛 r eqm ∼ 𝓡 l eqm
   iv = iii
 
-  v : 𝓛 right refl ≡ 𝓡 left refl
-  v = dfunext fe iv
--}
+  v : 𝓛 r eqm ≡ 𝓡 l eqm
+  v = funExt iv
+
 
 F-eq-r : 𝑅 ≡ 𝑟 𝑅
-F-eq-r = {!!} {- to-subtype-≡ being-𝓛𝓡-function-is-prop γ
+F-eq-r = ΣProp≡ being-𝓛𝓡-function-is-prop b
  where
-  δ : right ∼ 𝓡 right refl
-  δ = right-by-cases
+  a : r ∼ 𝓡 r (cong r eqC)
+  a = right-by-cases
 
-  γ : right ≡ 𝓡 right refl
-  γ = dfunext fe δ
--}
+  b : r ≡ 𝓡 r (cong r eqC)
+  b = funExt a
+
 
 mid : 𝔹 → F
 mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 F-eq-l F-eq-lr F-eq-r
