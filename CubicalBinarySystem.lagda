@@ -26,6 +26,33 @@ module CubicalBinarySystem where
 
 open import Cubical.Foundations.Prelude
 
+variable
+ ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
+
+idp : {X : Type ℓ} (x : X) → x ≡ x
+idp x = refl
+
+Sigma : (X : Type ℓ) (A : X → Type ℓ') → Type (ℓ-max ℓ ℓ')
+Sigma = Σ
+
+syntax Sigma A (λ x → b) = Σ x ꞉ A , b
+infixr -1 Sigma
+
+_∘_ : {X : Type ℓ₀} {Y : Type ℓ₁} {Z : Y → Type ℓ₂}
+    → ((y : Y) → Z y)
+    → (f : X → Y) (x : X) → Z (f x)
+g ∘ f = λ x → g(f x)
+
+infixl 5 _∘_
+
+_∼_ : {X : Type ℓ} {A : X → Type ℓ'}
+    → ((x : X) → A x)
+    → ((x : X) → A x)
+    → Type (ℓ-max ℓ ℓ')
+f ∼ g = ∀ x → f x ≡ g x
+
+infix  4  _∼_
+
 \end{code}
 
 The initial binary system as a HIT:
@@ -100,6 +127,20 @@ eqR' = refl
 
 \end{code}
 
+We also have:
+
+\begin{code}
+
+eql' : (i : I) → L    ≡ eqL' i
+eqc' : (i : I) → l' R ≡ eqC' i
+eqr' : (i : I) → R    ≡ eqR' i
+
+eql' i = refl
+eqc' i = refl
+eqr' i = refl
+
+\end{code}
+
 Notice that, by construction, η center is the common point in the
 images of l' and r'.
 
@@ -113,9 +154,9 @@ pair of mutually inverse maps ϕ and γ:
 φ R       = R
 φ (l x)   = l' (φ x)
 φ (r x)   = r' (φ x)
-φ (eqL i) = eqL' i -- Same as L.
-φ (eqC i) = eqC' i -- Same as C.
-φ (eqR i) = eqR' i -- Same as R.
+φ (eqL i) = eqL' i
+φ (eqC i) = eqC' i
+φ (eqR i) = eqR' i
 
 γ : 𝔹' → 𝔹
 γ L             = L
@@ -164,7 +205,7 @@ for the path constructors eqL, eqC and eqR, for which hcomp is used:
 
 \begin{code}
 
-path-construction : {ℓ : Level} {X : Type ℓ}
+path-construction : {X : Type ℓ}
                     (x y : X)
                     (p : x ≡ y)
                   → (i : I) → x ≡ p i
@@ -172,7 +213,7 @@ path-construction x y p i j = hcomp (λ k → λ { (j = i0) → x
                                              ; (j = i1) → p i })
                                     (p (i ∧ j))
 
-fixed-point-construction : {ℓ : Level} {X : Type ℓ}
+fixed-point-construction : {X : Type ℓ}
                            (x : X)
                            (f : X → X)
                            (p : x ≡ f x)
@@ -187,7 +228,7 @@ that is, a different way to travel from x to p i:
 
 \begin{code}
 
-var-fixed-point-construction : {ℓ : Level} {X : Type ℓ}
+var-fixed-point-construction : {X : Type ℓ}
                                (x : X)
                                (f : X → X)
                                (p : x ≡ f x)
@@ -310,8 +351,8 @@ module _ {ℓ    : Level}
          (y    : P R)
          (f    : (b : 𝔹) → P b → P (l b))
          (g    : (b : 𝔹) → P b → P (r b))
-         (eqf  : PathP (λ i → P (eqL i)) x (f L x))        -- Cubical-style formulation.
-         (eqfg : PathP (λ i → P (eqC i)) (f R y) (g L x))  --
+         (eqf  : PathP (λ i → P (eqL i)) x (f L x))        -- Cubical-style
+         (eqfg : PathP (λ i → P (eqC i)) (f R y) (g L x))  -- formulation.
          (eqg  : PathP (λ i → P (eqR i)) y (g R y))        --
        where
 
@@ -330,8 +371,8 @@ module _ {ℓ    : Level}
          (y    : P R)
          (f    : (b : 𝔹) → P b → P (l b))
          (g    : (b : 𝔹) → P b → P (r b))
-         (eqf  : subst P eqL x       ≡ f L x) -- HoTT/UF style fomulation.
-         (eqfg : subst P eqC (f R y) ≡ g L x) --
+         (eqf  : subst P eqL x       ≡ f L x) -- HoTT/UF style
+         (eqfg : subst P eqC (f R y) ≡ g L x) -- fomulation.
          (eqg  : subst P eqR y       ≡ g R y) --
        where
 
@@ -363,12 +404,24 @@ module _ {ℓ    : Level}
  𝔹'-ind (η (left x))  = f (η x) (𝔹'-ind (η x))
  𝔹'-ind (η (right x)) = g (η x) (𝔹'-ind (η x))
 
+\end{code}
+
+This satisfies the following equations:
+
+\begin{code}
+
  𝔹'-ind-l : (x : 𝔹') → 𝔹'-ind (l' x) ≡ f x (𝔹'-ind x)
  𝔹'-ind-r : (x : 𝔹') → 𝔹'-ind (r' x) ≡ g x (𝔹'-ind x)
 
  𝔹'-ind-L : ∀ i → 𝔹'-ind (eqL' i) ≡ eqf i
  𝔹'-ind-C : ∀ i → 𝔹'-ind (eqC' i) ≡ eqfg i
  𝔹'-ind-R : ∀ i → 𝔹'-ind (eqR' i) ≡ eqg i
+
+\end{code}
+
+With the following proofs:
+
+\begin{code}
 
  𝔹'-ind-l L     = eqf
  𝔹'-ind-l R     = refl
@@ -388,16 +441,62 @@ Preparation for the midpoint operation.
 
 \begin{code}
 
+
+
+\end{code}
+
+\begin{code}
+
+open import Cubical.Data.Sigma
+
+
+compatible : {X : Type ℓ} (f g : 𝔹 → X) → Type ℓ
+compatible f g = f R ≡ g L
+
+cases : {X : Type ℓ} (f g : 𝔹 → X) → compatible f g → (𝔹 → X)
+cases f g p L       = f L
+cases f g p R       = g R
+cases f g p (l x)   = f x
+cases f g p (r x)   = g x
+cases f g p (eqL i) = f L
+cases f g p (eqC i) = p i
+cases f g p (eqR i) = g R
+
+cases-uniqueness : {X : Type ℓ}
+                   (f g : 𝔹 → X)
+                   (p : compatible f g)
+                   (h : 𝔹 → X)
+                   (u : h ∘ l ∼ f)
+                   (v : h ∘ r ∼ g)
+                   (w : (i : I) → h (eqL i) ≡ f L)
+                   (a : f L ≡
+                   (t : (i : I) → h (eqR i) ≡ g R)
+                 → h ∼ cases f g p
+cases-uniqueness f g p h u v w t L = w i0
+cases-uniqueness f g p h u v w t R = t i0
+cases-uniqueness f g p h u v w t (l x) = u x
+cases-uniqueness f g p h u v w t (r x) = v x
+cases-uniqueness f g p h u v w t (eqL i) = w {!i0!}
+cases-uniqueness f g p h u v w t (eqC i) = {!!}
+cases-uniqueness f g p h u v w t (eqR i) = {!!}
+
+
 m : 𝔹 → 𝔹
-m L = l (r L)
-m R = r (l R)
-m (l x) = l (r x)
-m (r x) = r (l x)
-m (eqL i) = refl {ℓ-zero} {𝔹} {l (r L)} i
-m (eqC i) = p i
+m = cases (l ∘ r) (r ∘ l) p
  where
   p : l (r R) ≡ r (l L)
   p = cong l (sym eqR) ∙ eqC ∙ cong r eqL
-m (eqR i) = refl {ℓ-zero} {𝔹} {r (l R)} i
+
+l-m-compatible : compatible (l ∘ l) (m ∘ l)
+l-m-compatible = cong l eqC
+
+left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) l-m-compatible
+left-by-cases L = cong l eqL
+left-by-cases R = cong l eqR
+left-by-cases (l x) = refl
+left-by-cases (r x) = refl
+left-by-cases (eqL i) = var-fixed-point-construction (l (eqL i)) l (cong l {!!}) i
+left-by-cases (eqC i) = idp (l (eqC i))
+left-by-cases (eqR i) = {!!}
 
 \end{code}
