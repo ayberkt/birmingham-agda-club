@@ -71,7 +71,7 @@ infix  4  _∼_
 
 The initial binary system as a HIT:
 
-\begin{code}
+x\begin{code}
 
 data 𝔹 : Type₀ where
   L R : 𝔹
