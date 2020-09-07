@@ -563,7 +563,9 @@ cases f g p (eqR i) = g R
 
 \end{code}
 
-Uniqueness of functions defined by cases:
+Uniqueness of functions defined by cases.
+
+Preparation for that:
 
 \begin{code}
 
@@ -589,6 +591,12 @@ compatible-higher : {X : Type ℓ}
                   → Type ℓ
 compatible-higher f g p h u v = Square (u R) (v L) (cong h eqC) p
 
+\end{code}
+
+We first consider an ∞-version:
+
+\begin{code}
+
 cases-uniqueness : {X : Type ℓ}
                    (f g : 𝔹 → X)
                    (p : compatible f g)
@@ -610,6 +618,12 @@ cases-uniqueness f g p h u v c (r x) = v x
 cases-uniqueness f g p h u v c (eqL i) = path-lemma h eqL (u L) i
 cases-uniqueness f g p h u v c (eqC i) = c i
 cases-uniqueness f g p h u v c (eqR i) = path-lemma h eqR (v R) i
+
+\end{code}
+
+Then the set version is a special case of the ∞-version:
+
+\begin{code}
 
 cases-uniqueness-set : {X : Type ℓ}
                        (f g : 𝔹 → X)
@@ -731,7 +745,7 @@ x ⊕ y = fst (mid x) y
 
 \end{code}
 
-We now prove the midpoint equations:
+We now prove the midpoint algebra equations:
 
 \begin{code}
 
