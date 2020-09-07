@@ -462,6 +462,12 @@ cases f g p (eqL i) = f L
 cases f g p (eqC i) = p i
 cases f g p (eqR i) = g R
 
+path-lemma : ∀ {ℓ} {X : Type ℓ} → (h : 𝔹 → X) → {fL : X} → {x y : 𝔹} → (p : x ≡ y) → (uL : h y ≡ fL) → PathP (λ i → h (p i) ≡ fL) (cong h p ∙ uL) uL
+path-lemma h p uL i j = hcomp (λ k → λ { (i = i1) → uL (j ∧ k)
+                                       ; (j = i0) → h (p i)
+                                       ; (j = i1) → uL k })
+                              (h (p (i ∨ j)))
+
 cases-uniqueness : {X : Type ℓ}
                    (f g : 𝔹 → X)
                    (p : compatible f g)
@@ -479,9 +485,9 @@ cases-uniqueness f g p h u v R = q
   q = cong h eqR ∙ v R
 cases-uniqueness f g p h u v (l x) = u x
 cases-uniqueness f g p h u v (r x) = v x
-cases-uniqueness f g p h u v (eqL i) = {!!}
+cases-uniqueness f g p h u v (eqL i) = path-lemma h eqL (u L) i
 cases-uniqueness f g p h u v (eqC i) = {!!}
-cases-uniqueness f g p h u v (eqR i) = {!!}
+cases-uniqueness f g p h u v (eqR i) = path-lemma h eqR (v R) i
 
 
 m : 𝔹 → 𝔹
