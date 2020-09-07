@@ -639,7 +639,12 @@ cases-uniqueness-set f g p h u v isSetX =
 
 \end{code}
 
-Preparation for the midpoint operation.
+Preparation for the definition of the midpoint operation _⊕_.
+
+The idea is to endow a subtype F of the function type 𝔹 → 𝔹 with a
+binary-system structure (𝐿 , 𝑅 , 𝑙 , 𝑟 , eq𝐿 , eq𝐶 , eq𝑅) so that we
+get, by recursion, a function 𝔹 → F, and, hence, by projection, a
+function _⊕_ : 𝔹 → 𝔹 → B, which is our desired midpoint operation.
 
 \begin{code}
 
@@ -720,11 +725,24 @@ eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
   a : r ∼ 𝓡 r (cong r eqC)
   a = r-by-cases
 
+\end{code}
+
+After the above preparation, our definition of the midpoint operation
+_⊕_ is as follows:
+
+\begin{code}
+
 mid : 𝔹 → F
 mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 eq𝐿 eq𝐶 eq𝑅
 
 _⊕_ : 𝔹 → 𝔹 → 𝔹
 x ⊕ y = fst (mid x) y
+
+\end{code}
+
+By construction, the following equations hold:
+
+\begin{code}
 
 ⊕-property : (x : 𝔹)
            → (l (x ⊕ R) ≡ m (x ⊕ L))
@@ -746,7 +764,7 @@ x ⊕ y = fst (mid x) y
 
 \end{code}
 
-We now prove the midpoint algebra equations:
+We now prove the midpoint algebra equations for _⊕_:
 
 \begin{code}
 
@@ -809,19 +827,9 @@ We now prove the midpoint algebra equations:
                        R ⊕ r x ∎)
                       (λ y _ → cong m (h y))
                       (λ y _ → cong r (h y))
-
-{- l x ⊕ m y = (L ⊕ x) ⊕ m y = -}
-
-switch-l-m : (x y : 𝔹) → l x ⊕ m y ≡ m x ⊕ l y
-switch-l-m x y = 𝔹-ind-prop (λ y → l x ⊕ m y ≡ m x ⊕ l y)
-                             (λ y → 𝔹-is-set (l x ⊕ m y) (m x ⊕ l y))
-                             {!!}
-                             {!!}
-                             {!!}
-                             {!!}
-                             {!!}
-
 \end{code}
+
+TODO. The transposition axiom (a ⊕ b) ⊕ (x ⊕ y) ≡ (a ⊕ x) ⊕ (b ⊕ y).
 
 A second approach to define midpoint:
 
