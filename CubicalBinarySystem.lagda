@@ -37,6 +37,12 @@ open import Cubical.Data.Empty renaming (⊥ to 𝟘)
 open import Cubical.Data.Unit renaming (Unit to 𝟙 ; tt to *)
 open import Cubical.Foundations.GroupoidLaws
 
+\end{code}
+
+Preamble:
+
+\begin{code}
+
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
 
