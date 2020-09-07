@@ -715,7 +715,7 @@ x ⊕ y = fst (mid x) y
            × (m (x ⊕ R) ≡ r (x ⊕ L))
 ⊕-property x = snd (mid x)
 
-mid-equations : (x y : 𝔹)
+⊕-equations : (x y : 𝔹)
    → (  L   ⊕ y   ≡ l y        )
    × (  R   ⊕ y   ≡ r y        )
    × (  l x ⊕ L   ≡ l (x ⊕ L)  )
@@ -726,15 +726,71 @@ mid-equations : (x y : 𝔹)
    × (  r x ⊕ L   ≡ m (x ⊕ L)  )
    × (  r x ⊕ l y ≡ m (x ⊕ y)  )
    × (  r x ⊕ r y ≡ r (x ⊕ y)  )
-mid-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
+⊕-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
 
-mid-idemp : (x : 𝔹) → x ≡ x ⊕ x
-mid-idemp = 𝔹-ind-prop {!!} {!!} {!!} {!!} {!!} {!!}
+⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
+⊕-idemp = 𝔹-ind-prop (λ x → x ≡ x ⊕ x)
+                      (λ x → 𝔹-is-set x (x ⊕ x))
+                      eqL
+                      eqR
+                      (λ (x : 𝔹) (p : x ≡ x ⊕ x) → cong l p)
+                      (λ (x : 𝔹) (p : x ≡ x ⊕ x) → cong r p)
 
+L-⊕-comm : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
+L-⊕-comm = 𝔹-ind-prop (λ y → L ⊕ y ≡ y ⊕ L)
+                       (λ x → 𝔹-is-set (L ⊕ x) (x ⊕ L))
+                       refl
+                       eqC
+                       (λ y p → cong l p)
+                       (λ y p → cong m p)
+
+R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
+R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
+                       (λ x → 𝔹-is-set (R ⊕ x) (x ⊕ R))
+                       (sym eqC)
+                       refl
+                       (λ y p → cong m p)
+                       (λ y p → cong r p)
+
+⊕-comm : (x y : 𝔹) → x ⊕ y ≡ y ⊕ x
+⊕-comm = 𝔹-ind-prop (λ x → ∀ y → x ⊕ y ≡ y ⊕ x)
+                     (λ x → isPropΠ (λ y → 𝔹-is-set (x ⊕ y) (y ⊕ x)))
+                     L-⊕-comm
+                     R-⊕-comm
+                     f
+                     g
+ where
+  f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
+  f x h = 𝔹-ind-prop (λ y → l x ⊕ y ≡ y ⊕ l x)
+                      (λ y → 𝔹-is-set (l x ⊕ y) (y ⊕ l x))
+                      (l x ⊕ L   ≡⟨ refl ⟩
+                       l (x ⊕ L) ≡⟨ cong l (h L) ⟩
+                       l (L ⊕ x) ≡⟨ refl ⟩
+                       L ⊕ l x   ∎)
+                      (l x ⊕ R   ≡⟨ refl ⟩
+                       m (x ⊕ R) ≡⟨ cong m (h R) ⟩
+                       m (R ⊕ x) ≡⟨ refl ⟩
+                       R ⊕ l x   ∎)
+                      (λ y p → cong l (h y))
+                      (λ y p → cong m (h y))
+
+  g : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → r x ⊕ y ≡ y ⊕ r x
+  g x h = 𝔹-ind-prop (λ y → r x ⊕ y ≡ y ⊕ r x)
+                      (λ y → 𝔹-is-set (r x ⊕ y) (y ⊕ r x))
+                      (r x ⊕ L   ≡⟨ refl ⟩
+                       m (x ⊕ L) ≡⟨ cong m (h L) ⟩
+                       m (L ⊕ x) ≡⟨ refl ⟩
+                       L ⊕ r x   ∎)
+                      (r x ⊕ R   ≡⟨ refl ⟩
+                       r (x ⊕ R) ≡⟨ cong r (h R) ⟩
+                       r (R ⊕ x) ≡⟨ refl ⟩
+                       R ⊕ r x ∎)
+                      (λ y p → cong m (h y))
+                      (λ y p → cong r (h y))
 
 \end{code}
 
-Another approach to define midpoint:
+A second approach to define midpoint:
 
 \begin{code}
 
@@ -806,6 +862,13 @@ mid2R (r x) = refl
 mid2R (eqL i) = isSet→isSet' 𝔹-is-set (sym eqC) (λ _ → r (l L)) (cong r eqL) (eqC ∙ cong r eqL) i
 mid2R (eqC i) = refl
 mid2R (eqR i) = refl
+
+\end{code}
+
+A third approach to define midpoint, which is a combination of the
+first and second approaches:
+
+\begin{code}
 
 mid3 : 𝔹 → 𝔹 → 𝔹
 mid3L : ∀ x → l (mid3 x R) ≡ m (mid3 x L)
