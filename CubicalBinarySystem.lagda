@@ -465,15 +465,15 @@ cases f g p (eqR i) = g R
 
 path-lemma : {X : Type ℓ}
              (h : 𝔹 → X)
-             {fL : X}
              {x y : 𝔹}
+             {z : X}
              (p : x ≡ y)
-             (uL : h y ≡ fL)
-           → PathP (λ i → h (p i) ≡ fL) (cong h p ∙ uL) uL
-path-lemma h p uL i j = hcomp (λ k → λ { (i = i1) → uL (j ∧ k)
-                                       ; (j = i0) → h (p i)
-                                       ; (j = i1) → uL k })
-                              (h (p (i ∨ j)))
+             (u : h y ≡ z)
+           → PathP (λ i → h (p i) ≡ z) (cong h p ∙ u) u
+path-lemma h p u i j = hcomp (λ k → λ { (i = i1) → u (j ∧ k)
+                                      ; (j = i0) → h (p i)
+                                      ; (j = i1) → u k })
+                             (h (p (i ∨ j)))
 
 compatible-higher : {X : Type ℓ}
                     (f g : 𝔹 → X)
