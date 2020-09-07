@@ -15,8 +15,8 @@ We define the initial binary system as a HIT, in cubical type theory,
 and also in pure MLTT, and we show that, in cubical type theory, the
 two definitions give equivalent types.
 
-The motivation for the investigation in this file is to know whether
-the initial binary system is a set, as intended.
+The main motivation for the investigation in this file is to know
+whether the initial binary system is a set, as intended.
 
 \begin{code}
 
@@ -44,7 +44,7 @@ idp x = refl
 Sigma : (X : Type ℓ) (A : X → Type ℓ') → Type (ℓ-max ℓ ℓ')
 Sigma = Σ
 
-syntax Sigma A (λ x → b) = Σ x ꞉ A , b
+syntax Sigma X (λ x → a) = Σ x ꞉ X , a
 infixr -1 Sigma
 
 _∘_ : {X : Type ℓ₀} {Y : Type ℓ₁} {Z : Y → Type ℓ₂}
