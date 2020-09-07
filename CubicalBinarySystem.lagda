@@ -18,7 +18,7 @@ two definitions give equivalent types.
 The main motivation for the investigation in this file is to know
 whether the initial binary system is a set, as intended, which is
 indeed the case, as shown below, using the equivalence of the cubical
-and MLTT definition of the initial binary system.
+and MLTT definitions of the initial binary system.
 
 \begin{code}
 
@@ -39,7 +39,7 @@ open import Cubical.Foundations.GroupoidLaws
 
 \end{code}
 
-Preamble:
+Our preamble:
 
 \begin{code}
 
@@ -157,8 +157,8 @@ eqr' i = refl
 
 \end{code}
 
-Notice that, by construction, η center is the common point in the
-images of l' and r'.
+Notice that, by construction, the common point in the images of the
+functions l' and r' is η center.
 
 The equivalence of the two constructions is given by the following
 pair of mutually inverse maps φ and γ:
