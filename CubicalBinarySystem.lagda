@@ -208,7 +208,7 @@ for the path constructors eqL, eqC and eqR, for which hcomp is used:
 path-construction : {X : Type ℓ}
                     (x y : X)
                     (p : x ≡ y)
-                  → (i : I) → x ≡ p i
+                  → PathP (λ i → x ≡ p i) (refl ∙ refl) (p ∙ refl)
 path-construction x y p i j = hcomp (λ k → λ { (j = i0) → x
                                              ; (j = i1) → p i })
                                     (p (i ∧ j))
@@ -217,7 +217,7 @@ fixed-point-construction : {X : Type ℓ}
                            (x : X)
                            (f : X → X)
                            (p : x ≡ f x)
-                         → (i : I) → x ≡ p i
+                         → PathP (λ i → x ≡ p i) (refl ∙ refl) (p ∙ refl)
 fixed-point-construction x f = path-construction x (f x)
 
 \end{code}
@@ -232,7 +232,7 @@ var-fixed-point-construction : {X : Type ℓ}
                                (x : X)
                                (f : X → X)
                                (p : x ≡ f x)
-                             → (i : I) → x ≡ p i
+                             → PathP (λ i → x ≡ p i) refl (p ∙ refl)
 var-fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
                                                         ; (j = i0) → x
                                                         ; (j = i1) → p i })
@@ -244,9 +244,9 @@ paths, which in turn are used to construct γϕ below:
 
 \begin{code}
 
-eql : (i : I) → L   ≡ eqL i
-eqc : (i : I) → l R ≡ eqC i
-eqr : (i : I) → R   ≡ eqR i
+eql : PathP (λ i → L   ≡ eqL i) refl (eqL ∙ refl)
+eqc : PathP (λ i → l R ≡ eqC i) (refl ∙ refl) (eqC ∙ refl)
+eqr : PathP (λ i → R   ≡ eqR i) refl (eqR ∙ refl)
 
 eql = var-fixed-point-construction L l eqL
 eqc = path-construction (l R) (r L) eqC
@@ -335,9 +335,9 @@ The desired equations for 𝔹'-rec hold, but not definitionally:
  𝔹'-rec-r R     = eqg
  𝔹'-rec-r (η x) = refl
 
- 𝔹'-rec-L = var-fixed-point-construction x f eqf
- 𝔹'-rec-C = path-construction (f y) (g x) eqfg
- 𝔹'-rec-R = var-fixed-point-construction y g eqg
+ 𝔹'-rec-L i = var-fixed-point-construction x f eqf i
+ 𝔹'-rec-C i = path-construction (f y) (g x) eqfg i
+ 𝔹'-rec-R i = var-fixed-point-construction y g eqg i
 
 \end{code}
 
@@ -431,9 +431,9 @@ With the following proofs:
  𝔹'-ind-r R     = eqg
  𝔹'-ind-r (η x) = refl
 
- 𝔹'-ind-L = var-fixed-point-construction x (f L) eqf
- 𝔹'-ind-C = path-construction (f R y) (g L x) eqfg
- 𝔹'-ind-R = var-fixed-point-construction y (g R) eqg
+ 𝔹'-ind-L i = var-fixed-point-construction x (f L) eqf i
+ 𝔹'-ind-C i = path-construction (f R y) (g L x) eqfg i
+ 𝔹'-ind-R i = var-fixed-point-construction y (g R) eqg i
 
 \end{code}
 
@@ -468,17 +468,20 @@ cases-uniqueness : {X : Type ℓ}
                    (h : 𝔹 → X)
                    (u : h ∘ l ∼ f)
                    (v : h ∘ r ∼ g)
-                   (w : (i : I) → h (eqL i) ≡ f L)
-                   (a : f L ≡
-                   (t : (i : I) → h (eqR i) ≡ g R)
                  → h ∼ cases f g p
-cases-uniqueness f g p h u v w t L = w i0
-cases-uniqueness f g p h u v w t R = t i0
-cases-uniqueness f g p h u v w t (l x) = u x
-cases-uniqueness f g p h u v w t (r x) = v x
-cases-uniqueness f g p h u v w t (eqL i) = w {!i0!}
-cases-uniqueness f g p h u v w t (eqC i) = {!!}
-cases-uniqueness f g p h u v w t (eqR i) = {!!}
+cases-uniqueness f g p h u v L = q
+ where
+  q : h L ≡ f L
+  q = cong h eqL ∙ u L
+cases-uniqueness f g p h u v R = q
+ where
+  q : h R ≡ g R
+  q = cong h eqR ∙ v R
+cases-uniqueness f g p h u v (l x) = u x
+cases-uniqueness f g p h u v (r x) = v x
+cases-uniqueness f g p h u v (eqL i) = {!!}
+cases-uniqueness f g p h u v (eqC i) = {!!}
+cases-uniqueness f g p h u v (eqR i) = {!!}
 
 
 m : 𝔹 → 𝔹
@@ -491,12 +494,6 @@ l-m-compatible : compatible (l ∘ l) (m ∘ l)
 l-m-compatible = cong l eqC
 
 left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) l-m-compatible
-left-by-cases L = cong l eqL
-left-by-cases R = cong l eqR
-left-by-cases (l x) = refl
-left-by-cases (r x) = refl
-left-by-cases (eqL i) = var-fixed-point-construction (l (eqL i)) l (cong l {!!}) i
-left-by-cases (eqC i) = idp (l (eqC i))
-left-by-cases (eqR i) = {!!}
+left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) l-m-compatible l (λ x → refl) (λ x → refl)
 
 \end{code}
