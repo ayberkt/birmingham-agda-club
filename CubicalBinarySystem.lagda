@@ -736,22 +736,6 @@ x ⊕ y = fst (mid x) y
                       (λ (x : 𝔹) (p : x ≡ x ⊕ x) → cong l p)
                       (λ (x : 𝔹) (p : x ≡ x ⊕ x) → cong r p)
 
-L-⊕-comm : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
-L-⊕-comm = 𝔹-ind-prop (λ y → L ⊕ y ≡ y ⊕ L)
-                       (λ x → 𝔹-is-set (L ⊕ x) (x ⊕ L))
-                       refl
-                       eqC
-                       (λ y p → cong l p)
-                       (λ y p → cong m p)
-
-R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
-R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
-                       (λ x → 𝔹-is-set (R ⊕ x) (x ⊕ R))
-                       (sym eqC)
-                       refl
-                       (λ y p → cong m p)
-                       (λ y p → cong r p)
-
 ⊕-comm : (x y : 𝔹) → x ⊕ y ≡ y ⊕ x
 ⊕-comm = 𝔹-ind-prop (λ x → ∀ y → x ⊕ y ≡ y ⊕ x)
                      (λ x → isPropΠ (λ y → 𝔹-is-set (x ⊕ y) (y ⊕ x)))
@@ -760,6 +744,22 @@ R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
                      f
                      g
  where
+  L-⊕-comm : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
+  L-⊕-comm = 𝔹-ind-prop (λ y → L ⊕ y ≡ y ⊕ L)
+                         (λ x → 𝔹-is-set (L ⊕ x) (x ⊕ L))
+                         refl
+                         eqC
+                         (λ y p → cong l p)
+                         (λ y p → cong m p)
+
+  R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
+  R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
+                         (λ x → 𝔹-is-set (R ⊕ x) (x ⊕ R))
+                         (sym eqC)
+                         refl
+                         (λ y p → cong m p)
+                         (λ y p → cong r p)
+
   f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
   f x h = 𝔹-ind-prop (λ y → l x ⊕ y ≡ y ⊕ l x)
                       (λ y → 𝔹-is-set (l x ⊕ y) (y ⊕ l x))
@@ -771,8 +771,8 @@ R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
                        m (x ⊕ R) ≡⟨ cong m (h R) ⟩
                        m (R ⊕ x) ≡⟨ refl ⟩
                        R ⊕ l x   ∎)
-                      (λ y p → cong l (h y))
-                      (λ y p → cong m (h y))
+                      (λ y _ → cong l (h y))
+                      (λ y _ → cong m (h y))
 
   g : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → r x ⊕ y ≡ y ⊕ r x
   g x h = 𝔹-ind-prop (λ y → r x ⊕ y ≡ y ⊕ r x)
@@ -785,8 +785,8 @@ R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
                        r (x ⊕ R) ≡⟨ cong r (h R) ⟩
                        r (R ⊕ x) ≡⟨ refl ⟩
                        R ⊕ r x ∎)
-                      (λ y p → cong m (h y))
-                      (λ y p → cong r (h y))
+                      (λ y _ → cong m (h y))
+                      (λ y _ → cong r (h y))
 
 \end{code}
 
