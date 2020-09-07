@@ -471,6 +471,20 @@ module _ {ℓ    : Level}
  𝔹-ind' = 𝔹-ind P x y f g (λ i → toPathP {A = λ j → P (eqL j)} eqf i)
                            (λ i → toPathP {A = λ j → P (eqC j)} eqfg i)
                            (λ i → toPathP {A = λ j → P (eqR j)} eqg i)
+
+module _ {ℓ    : Level}
+         (P    : 𝔹 → Type ℓ)
+         (P-is-prop-valued : (x : 𝔹) → isProp (P x))
+         (x    : P L)
+         (y    : P R)
+         (f    : (b : 𝔹) → P b → P (l b))
+         (g    : (b : 𝔹) → P b → P (r b))
+       where
+
+ 𝔹-ind-prop : (b : 𝔹) → P b
+ 𝔹-ind-prop = 𝔹-ind' P x y f g (P-is-prop-valued (l L) (subst P eqL x) (f L x))
+                                (P-is-prop-valued (r L) (subst P eqC (f R y)) (g L x))
+                                (P-is-prop-valued (r R) (subst P eqR y) (g R y))
 \end{code}
 
 Induction for the MLTT construction of the initial binary system:
@@ -528,7 +542,7 @@ With the following proofs:
 
 \end{code}
 
-Preparation for the midpoint operation.
+Definition by cases:
 
 \begin{code}
 
@@ -545,6 +559,12 @@ cases f g p (r x)   = g x
 cases f g p (eqL i) = f L
 cases f g p (eqC i) = p i
 cases f g p (eqR i) = g R
+
+\end{code}
+
+Uniqueness of functions defined by cases:
+
+\begin{code}
 
 path-lemma : {X : Type ℓ}
              (h : 𝔹 → X)
@@ -601,6 +621,11 @@ cases-uniqueness-set : {X : Type ℓ}
 cases-uniqueness-set f g p h u v isSetX =
   cases-uniqueness f g p h u v (isSet→isSet' isSetX (u R) (v L) (cong h eqC) p)
 
+\end{code}
+
+Preparation for the midpoint operation.
+
+\begin{code}
 
 m : 𝔹 → 𝔹
 m = cases (l ∘ r) (r ∘ l) p
@@ -644,7 +669,7 @@ is-𝓛𝓡-function f = is-𝓛-function f × is-𝓡-function f
 being-𝓛𝓡-function-is-prop : (f : 𝔹 → 𝔹) → isProp (is-𝓛𝓡-function f)
 being-𝓛𝓡-function-is-prop f = isProp× (𝔹-is-set (l (f R)) (m (f L))) (𝔹-is-set (m (f R)) (r (f L)))
 
-F : Type ℓ-zero
+F : Type₀
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 
 𝑙 𝑟 : F → F
@@ -665,13 +690,13 @@ F-eq-l = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
   a = left-by-cases
 
 F-eq-lr : 𝑙 𝑅 ≡ 𝑟 𝐿
-F-eq-lr = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt iv)
+F-eq-lr = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a')
  where
-  iii : cases (l ∘ r) (m ∘ r) eqm ∼ cases (m ∘ l) (r ∘ l) eqm
-  iii = cases-uniqueness (m ∘ l) (r ∘ l) eqm (cases (l ∘ r) (m ∘ r) eqm) (λ _ → refl) (λ _ → refl) (λ _ → refl)
+  a : cases (l ∘ r) (m ∘ r) eqm ∼ cases (m ∘ l) (r ∘ l) eqm
+  a = cases-uniqueness (m ∘ l) (r ∘ l) eqm (cases (l ∘ r) (m ∘ r) eqm) (λ _ → refl) (λ _ → refl) (λ _ → refl)
 
-  iv : 𝓛 r eqm ∼ 𝓡 l eqm
-  iv = iii
+  a' : 𝓛 r eqm ∼ 𝓡 l eqm
+  a' = a
 
 F-eq-r : 𝑅 ≡ 𝑟 𝑅
 F-eq-r = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
@@ -702,6 +727,16 @@ mid-equations : (x y : 𝔹)
    × (  r x ⊕ l y ≡ m (x ⊕ y)  )
    × (  r x ⊕ r y ≡ r (x ⊕ y)  )
 mid-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
+
+mid-idemp : (x : 𝔹) → x ≡ x ⊕ x
+mid-idemp = 𝔹-ind-prop {!!} {!!} {!!} {!!} {!!} {!!}
+
+
+\end{code}
+
+Another approach to define midpoint:
+
+\begin{code}
 
 coherence-lem : Square eqC (cong m eqC) (cong l eqR) (cong r eqL)
 coherence-lem = isSet→isSet' 𝔹-is-set eqC (cong m eqC) (cong l eqR) (cong r eqL)
