@@ -33,6 +33,7 @@ open import Cubical.Relation.Nullary
 open import Cubical.Relation.Nullary.DecidableEq
 open import Cubical.Data.Empty renaming (⊥ to 𝟘)
 open import Cubical.Data.Unit renaming (Unit to 𝟙 ; tt to *)
+open import Cubical.Foundations.GroupoidLaws
 
 
 variable
@@ -231,6 +232,7 @@ fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
                                                     ; (j = i0) → x
                                                     ; (j = i1) → p i })
                                            (p (i ∧ j))
+
 \end{code}
 
 These constructions are applied to obtain the following specific
@@ -700,5 +702,74 @@ mid-equations : (x y : 𝔹)
    × (  r x ⊕ l y ≡ m (x ⊕ y)  )
    × (  r x ⊕ r y ≡ r (x ⊕ y)  )
 mid-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
+
+coherence-lem : Square eqC (cong m eqC) (cong l eqR) (cong r eqL)
+coherence-lem = isSet→isSet' 𝔹-is-set eqC (cong m eqC) (cong l eqR) (cong r eqL)
+
+mid2 : 𝔹 → 𝔹 → 𝔹
+mid2L : ∀ x → l x ≡ mid2 x L
+mid2R : ∀ x → r x ≡ mid2 x R
+
+mid2 L y = l y
+mid2 R y = r y
+mid2 (l x) L = l (l x)
+mid2 (l x) R = r (l x)
+mid2 (l x) (l y) = l (mid2 x y)
+mid2 (l x) (r y) = m (mid2 x y)
+mid2 (l x) (eqL i) = l (mid2L x i)
+mid2 (l x) (eqC i) = (cong l (sym (mid2R x)) ∙ cong m (mid2L x)) i
+mid2 (l x) (eqR i) = m (mid2R x i)
+mid2 (r x) L = l (r x)
+mid2 (r x) R = r (r x)
+mid2 (r x) (l y) = m (mid2 x y)
+mid2 (r x) (r y) = r (mid2 x y)
+mid2 (r x) (eqL i) = m (mid2L x i)
+mid2 (r x) (eqC i) = (cong m (sym (mid2R x)) ∙ cong r (mid2L x)) i
+mid2 (r x) (eqR i) = r (mid2R x i)
+mid2 (eqL i) L = l (eqL i)
+mid2 (eqL i) R = (eqC ∙ cong r eqL) i
+mid2 (eqL i) (l y) = l (l y)
+mid2 (eqL i) (r y) = l (r y)
+mid2 (eqL i) (eqL j) = l (eqL (i ∨ j))
+mid2 (eqL i) (eqC j) = rUnit (cong l eqC) i j
+mid2 (eqL i) (eqR j) = hcomp (λ k → λ { (i = i0) → l (eqR (j ∧ k))
+                                      ; (i = i1) → coherence-lem k (~ j)
+                                      ; (j = i1) → l (eqR k)})
+                             (eqC (i ∧ ~ j))
+mid2 (eqC i) L = l (eqC i)
+mid2 (eqC i) R = r (eqC i)
+mid2 (eqC i) (l y) = l (r y)
+mid2 (eqC i) (r y) = r (l y)
+mid2 (eqC i) (eqL j) = l (eqC (i ∨ j))
+mid2 (eqC i) (eqC j) = hcomp (λ k → λ { (j = i0) → l (r R)
+                                      ; (j = i1) → m (eqC (i ∨ k))})
+                             (m (eqC (i ∧ j)))
+mid2 (eqC i) (eqR j) = r (eqC (i ∧ ~ j ))
+mid2 (eqR i) L = (sym eqC ∙ cong l eqR) i
+mid2 (eqR i) R = r (eqR i)
+mid2 (eqR i) (l y) = r (l y)
+mid2 (eqR i) (r y) = r (r y)
+mid2 (eqR i) (eqL j) = hcomp (λ k → λ { (i = i0) → r (eqL (j ∧ k))
+                                      ; (i = i1) → coherence-lem k j
+                                      ; (j = i1) → r (eqL k)})
+                             (eqC (~ i ∨ j))
+mid2 (eqR i) (eqC j) = lUnit (cong r eqC) i j
+mid2 (eqR i) (eqR j) = r (eqR (i ∨ j))
+
+mid2L L = refl
+mid2L R = eqC
+mid2L (l x) = refl
+mid2L (r x) = refl
+mid2L (eqL i) = refl
+mid2L (eqC i) = refl
+mid2L (eqR i) = isSet→isSet' 𝔹-is-set eqC (λ _ → l (r R)) (cong l eqR) (sym eqC ∙ cong l eqR) i
+
+mid2R L = sym eqC
+mid2R R = refl
+mid2R (l x) = refl
+mid2R (r x) = refl
+mid2R (eqL i) = isSet→isSet' 𝔹-is-set (sym eqC) (λ _ → r (l L)) (cong r eqL) (eqC ∙ cong r eqL) i
+mid2R (eqC i) = refl
+mid2R (eqR i) = refl
 
 \end{code}
