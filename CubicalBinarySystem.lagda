@@ -633,7 +633,7 @@ m : 𝔹 → 𝔹
 m = cases (l ∘ r) (r ∘ l) p
  where
   p : l (r R) ≡ r (l L)
-  p = cong l (sym eqR) ∙ eqC ∙ cong r eqL
+  p = cong l (sym eqR) ∙∙ eqC ∙∙ cong r eqL
 
 left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
 left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl) (λ i → refl)
@@ -808,7 +808,7 @@ A second approach to define midpoint:
 \begin{code}
 
 coherence-lem : Square eqC (cong m eqC) (cong l eqR) (cong r eqL)
-coherence-lem = isSet→isSet' 𝔹-is-set eqC (cong m eqC) (cong l eqR) (cong r eqL)
+coherence-lem = doubleCompPath-filler (cong l (sym eqR)) eqC (cong r eqL)
 
 mid2 : 𝔹 → 𝔹 → 𝔹
 mid2L : ∀ x → l x ≡ mid2 x L
@@ -926,7 +926,7 @@ mid3 (eqR i) (eqC j) = r (eqC j)
 mid3 (eqR i) (eqR j) = r (eqR (i ∨ j))
 
 mid3L L = cong l eqC
-mid3L R = cong m eqC
+mid3L R = (cong l (sym eqR)) ∙∙ eqC ∙∙ (cong r eqL)
 mid3L (l x) = cong l (mid3R x)
 mid3L (r x) = cong m (mid3L x)
 mid3L (eqL i) = cong l (coherence-lem i)
@@ -939,6 +939,61 @@ mid3R (l x) = cong m (mid3R x)
 mid3R (r x) = cong r (mid3L x)
 mid3R (eqL i) = cong m (coherence-lem i)
 mid3R (eqC i) = cong (r ∘ l) eqC
-mid3R (eqR i) = cong r (coherence-lem i)
+mid3R (eqR i) j = r (doubleCompPath-filler (cong l (sym eqR)) eqC (cong r eqL) i j)
+
+lem : (f : 𝔹 → 𝔹) → {x : 𝔹} → (p : x ≡ f x) → Square p (cong f p) p (cong f p)
+lem f p i j = hcomp (λ k → λ { (i = i0) → p j
+                             ; (i = i1) → f (p (j ∧ k))
+                             ; (j = i0) → p i
+                             ; (j = i1) → f (p (i ∧ k))})
+                    (p (i ∨ j))
+
+eqLNat : Square eqL (cong l eqL) eqL (cong l eqL)
+eqLNat = lem l eqL
+
+eqRNat : Square eqR (cong r eqR) eqR (cong r eqR)
+eqRNat = lem r eqR
+
+mid3idem : ∀ x → x ≡ mid3 x x
+mid3idem L = eqL
+mid3idem R = eqR
+mid3idem (l x) = cong l (mid3idem x)
+mid3idem (r x) = cong r (mid3idem x)
+mid3idem (eqL i) = eqLNat i
+mid3idem (eqC i) j = coherence-lem j i
+mid3idem (eqR i) = eqRNat i
+
+mid3comm : ∀ x y → mid3 x y ≡ mid3 y x
+mid3comm L L = refl
+mid3comm L R = eqC
+mid3comm L (l y) = cong l (mid3comm L y)
+mid3comm L (r y) = cong m (mid3comm L y)
+mid3comm L (eqL i) = refl
+mid3comm L (eqC i) j = l (eqC (i ∨ j))
+mid3comm L (eqR i) = coherence-lem i
+mid3comm R L = sym eqC
+mid3comm R R = refl
+mid3comm R (l y) = cong m (mid3comm R y)
+mid3comm R (r y) = cong r (mid3comm R y)
+mid3comm R (eqL i) j = coherence-lem i (~ j)
+mid3comm R (eqC i) j = r (eqC (i ∧ ~ j))
+mid3comm R (eqR i) = refl
+mid3comm (l x) L = cong l (mid3comm x L)
+mid3comm (l x) R = cong m (mid3comm x R)
+mid3comm (l x) (l y) = cong l (mid3comm x y)
+mid3comm (l x) (r y) = cong m (mid3comm x y)
+mid3comm (l x) (eqL i) = cong l (mid3comm x L)
+mid3comm (l x) (eqC i) = {!!}
+mid3comm (l x) (eqR i) = cong m (mid3comm x R)
+mid3comm (r x) L = cong m (mid3comm x L)
+mid3comm (r x) R = cong r (mid3comm x R)
+mid3comm (r x) (l y) = cong m (mid3comm x y)
+mid3comm (r x) (r y) = cong r (mid3comm x y)
+mid3comm (r x) (eqL i) = cong m (mid3comm x L)
+mid3comm (r x) (eqC i) = {!!}
+mid3comm (r x) (eqR i) = cong r (mid3comm x R)
+mid3comm (eqL i) y = {!!}
+mid3comm (eqC i) y = {!!}
+mid3comm (eqR i) y = {!!}
 
 \end{code}
