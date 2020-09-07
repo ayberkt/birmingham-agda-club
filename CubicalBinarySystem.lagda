@@ -25,6 +25,7 @@ the initial binary system is a set.
 module CubicalBinarySystem where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
 
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
@@ -468,26 +469,47 @@ path-lemma h p uL i j = hcomp (λ k → λ { (i = i1) → uL (j ∧ k)
                                        ; (j = i1) → uL k })
                               (h (p (i ∨ j)))
 
+compatible-higher : {X : Type ℓ}
+                    (f g : 𝔹 → X)
+                    (p : compatible f g)
+                    (h : 𝔹 → X)
+                    (u : h ∘ l ∼ f)
+                    (v : h ∘ r ∼ g)
+                  → Type ℓ
+compatible-higher f g p h u v = Square (u R) (v L) (cong h eqC) p
+
 cases-uniqueness : {X : Type ℓ}
                    (f g : 𝔹 → X)
                    (p : compatible f g)
                    (h : 𝔹 → X)
                    (u : h ∘ l ∼ f)
                    (v : h ∘ r ∼ g)
+                 → compatible-higher f g p h u v
                  → h ∼ cases f g p
-cases-uniqueness f g p h u v L = q
+cases-uniqueness f g p h u v c L = q
  where
   q : h L ≡ f L
   q = cong h eqL ∙ u L
-cases-uniqueness f g p h u v R = q
+cases-uniqueness f g p h u v c R = q
  where
   q : h R ≡ g R
   q = cong h eqR ∙ v R
-cases-uniqueness f g p h u v (l x) = u x
-cases-uniqueness f g p h u v (r x) = v x
-cases-uniqueness f g p h u v (eqL i) = path-lemma h eqL (u L) i
-cases-uniqueness f g p h u v (eqC i) = {!!}
-cases-uniqueness f g p h u v (eqR i) = path-lemma h eqR (v R) i
+cases-uniqueness f g p h u v c (l x) = u x
+cases-uniqueness f g p h u v c (r x) = v x
+cases-uniqueness f g p h u v c (eqL i) = path-lemma h eqL (u L) i
+cases-uniqueness f g p h u v c (eqC i) = c i
+cases-uniqueness f g p h u v c (eqR i) = path-lemma h eqR (v R) i
+
+cases-uniqueness-set : {X : Type ℓ}
+                       (f g : 𝔹 → X)
+                       (p : compatible f g)
+                       (h : 𝔹 → X)
+                       (u : h ∘ l ∼ f)
+                       (v : h ∘ r ∼ g)
+                     → isSet X
+                     → h ∼ cases f g p
+cases-uniqueness-set f g p h u v isSetX =
+  cases-uniqueness f g p h u v (isSet→isSet' isSetX (u R) (v L) (cong h eqC) p)
 
 
 m : 𝔹 → 𝔹
@@ -500,6 +522,6 @@ l-m-compatible : compatible (l ∘ l) (m ∘ l)
 l-m-compatible = cong l eqC
 
 left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) l-m-compatible
-left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) l-m-compatible l (λ x → refl) (λ x → refl)
+left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) l-m-compatible l (λ x → refl) (λ x → refl) (λ i → refl)
 
 \end{code}
