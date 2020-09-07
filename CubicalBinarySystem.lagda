@@ -376,8 +376,9 @@ L'-is-not-η p = transport (cong is-L' p) *
 
 \end{code}
 
-We now consider recursion and then, more generally, induction, in
-various forms, for both conceptual and practical reasons.
+We now consider recursion and then, more generally, induction.  For
+both conceptual and practical reasons, we consider various forms of
+induction.
 
 \begin{code}
 
