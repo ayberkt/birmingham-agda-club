@@ -25,8 +25,15 @@ the initial binary system is a set, as intended.
 module CubicalBinarySystem where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma.Properties
+open import Cubical.Relation.Nullary
+open import Cubical.Relation.Nullary.DecidableEq
+open import Cubical.Data.Empty renaming (⊥ to 𝟘)
+open import Cubical.Data.Unit renaming (Unit to 𝟙 ; tt to *)
+
 
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
@@ -147,7 +154,7 @@ Notice that, by construction, η center is the common point in the
 images of l' and r'.
 
 The equivalence of the two constructions is given by the following
-pair of mutually inverse maps ϕ and γ:
+pair of mutually inverse maps φ and γ:
 
 \begin{code}
 
@@ -219,26 +226,11 @@ fixed-point-construction : {X : Type ℓ}
                            (x : X)
                            (f : X → X)
                            (p : x ≡ f x)
-                         → PathP (λ i → x ≡ p i) (refl ∙ refl) (p ∙ refl)
-fixed-point-construction x f = path-construction x (f x)
-
-\end{code}
-
-For the purposes of definining γφ below, we need a different
-construction of a point of the same type as fixed-point-construction,
-that is, a different way to travel from x to p i:
-
-\begin{code}
-
-var-fixed-point-construction : {X : Type ℓ}
-                               (x : X)
-                               (f : X → X)
-                               (p : x ≡ f x)
-                             → PathP (λ i → x ≡ p i) refl (p ∙ refl)
-var-fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
-                                                        ; (j = i0) → x
-                                                        ; (j = i1) → p i })
-                                               (p (i ∧ j))
+                         → PathP (λ i → x ≡ p i) refl (p ∙ refl)
+fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
+                                                    ; (j = i0) → x
+                                                    ; (j = i1) → p i })
+                                           (p (i ∧ j))
 \end{code}
 
 These constructions are applied to obtain the following specific
@@ -246,13 +238,13 @@ paths, which in turn are used to construct γϕ below:
 
 \begin{code}
 
-eql : PathP (λ i → L   ≡ eqL i) refl (eqL ∙ refl)
+eql : PathP (λ i → L   ≡ eqL i) refl          (eqL ∙ refl)
 eqc : PathP (λ i → l R ≡ eqC i) (refl ∙ refl) (eqC ∙ refl)
-eqr : PathP (λ i → R   ≡ eqR i) refl (eqR ∙ refl)
+eqr : PathP (λ i → R   ≡ eqR i) refl          (eqR ∙ refl)
 
-eql = var-fixed-point-construction L l eqL
+eql = fixed-point-construction L l eqL
 eqc = path-construction (l R) (r L) eqC
-eqr = var-fixed-point-construction R r eqR
+eqr = fixed-point-construction R r eqR
 
 γφ : (x : 𝔹) → γ (φ x) ≡ x
 γφ L       = refl
@@ -286,6 +278,100 @@ extensionality axioms), without invoking the cubical machinery.
 Notice that a binary system homomorphism, in this ∞-setting, is a
 function that commutes not only with L, R, l, r, but also with eqL,
 eqC and eqR.
+
+\begin{code}
+
+private
+ cancellr : 𝔻 → 𝔻
+ cancellr center = center -- arbitrary
+ cancellr (left x) = x
+ cancellr (right x) = x
+
+ cancelη : 𝔹' → 𝔻
+ cancelη L = center -- arbitrary
+ cancelη R = center -- arbitrary
+ cancelη (η x) = x
+
+left-lc : {x y : 𝔻} → left x ≡ left y → x ≡ y
+left-lc = cong cancellr
+
+right-lc : {x y : 𝔻} → right x ≡ right y → x ≡ y
+right-lc = cong cancellr
+
+isLeft : 𝔻 → Type₀
+isLeft center    = 𝟘
+isLeft (left x)  = 𝟙
+isLeft (right x) = 𝟘
+
+isCenter : 𝔻 → Type₀
+isCenter center    = 𝟙
+isCenter (left x)  = 𝟘
+isCenter (right x) = 𝟘
+
+left-is-not-right : {x y : 𝔻} → ¬ left x ≡ right y
+left-is-not-right p = transport (cong isLeft p) *
+
+center-is-not-left : {x : 𝔻} → ¬ center ≡ left x
+center-is-not-left p = transport (cong isCenter p) *
+
+center-is-not-right : {x : 𝔻} → ¬ center ≡ right x
+center-is-not-right p = transport (cong isCenter p) *
+
+𝔻-is-discrete : Discrete 𝔻
+𝔻-is-discrete center center = yes refl
+𝔻-is-discrete center    (left y)  = no center-is-not-left
+𝔻-is-discrete center    (right y) = no center-is-not-right
+𝔻-is-discrete (left x)  center    = no (center-is-not-left ∘ sym)
+𝔻-is-discrete (left x)  (left y)  = mapDec (cong left) (λ ν p → ν (left-lc p)) (𝔻-is-discrete x y)
+𝔻-is-discrete (left x)  (right y) = no left-is-not-right
+𝔻-is-discrete (right x) center    = no (center-is-not-right ∘ sym)
+𝔻-is-discrete (right x) (left y)  = no (left-is-not-right ∘ sym)
+𝔻-is-discrete (right x) (right y) = mapDec (cong right) (λ ν p → ν (right-lc p)) (𝔻-is-discrete x y)
+
+η-lc : {x y : 𝔻} → η x ≡ η y → x ≡ y
+η-lc = cong cancelη
+
+is-L : 𝔹' → Type₀
+is-L L     = 𝟙
+is-L R     = 𝟘
+is-L (η x) = 𝟘
+
+is-η : 𝔹' → Type₀
+is-η L     = 𝟘
+is-η R     = 𝟘
+is-η (η x) = 𝟙
+
+L-is-not-R : ¬ L ≡ R
+L-is-not-R p = transport (cong is-L p) *
+
+L-is-not-η : {x : 𝔻} → ¬ L ≡ η x
+L-is-not-η p = transport (cong is-L p) *
+
+η-is-not-R : {x : 𝔻} → ¬ η x ≡ R
+η-is-not-R p = transport (cong is-η p) *
+
+𝔹'-is-discrete : Discrete 𝔹'
+𝔹'-is-discrete L L = yes refl
+𝔹'-is-discrete L R = no L-is-not-R
+𝔹'-is-discrete L (η x) = no L-is-not-η
+𝔹'-is-discrete R L = no (L-is-not-R ∘ sym)
+𝔹'-is-discrete R R = yes refl
+𝔹'-is-discrete R (η x) = no (η-is-not-R ∘ sym)
+𝔹'-is-discrete (η x) L = no (L-is-not-η ∘ sym)
+𝔹'-is-discrete (η x) R = no η-is-not-R
+𝔹'-is-discrete (η x) (η y) = mapDec (cong η) (λ ν p → ν (η-lc p)) (𝔻-is-discrete x y)
+
+𝔹'-is-set : isSet 𝔹'
+𝔹'-is-set = Discrete→isSet 𝔹'-is-discrete
+
+𝔹'-is-equiv-to-𝔹 : 𝔹' ≃ 𝔹
+𝔹'-is-equiv-to-𝔹 = isoToEquiv (iso γ φ γφ φγ)
+
+𝔹-is-set : isSet 𝔹
+𝔹-is-set = isOfHLevelRespectEquiv 2 𝔹'-is-equiv-to-𝔹 𝔹'-is-set
+
+\end{code}
+
 
 We now consider recursion and then, more generally, induction.
 
@@ -337,9 +423,9 @@ The desired equations for 𝔹'-rec hold, but not definitionally:
  𝔹'-rec-r R     = eqg
  𝔹'-rec-r (η x) = refl
 
- 𝔹'-rec-L i = var-fixed-point-construction x f eqf i
+ 𝔹'-rec-L i = fixed-point-construction x f eqf i
  𝔹'-rec-C i = path-construction (f y) (g x) eqfg i
- 𝔹'-rec-R i = var-fixed-point-construction y g eqg i
+ 𝔹'-rec-R i = fixed-point-construction y g eqg i
 
 \end{code}
 
@@ -433,9 +519,9 @@ With the following proofs:
  𝔹'-ind-r R     = eqg
  𝔹'-ind-r (η x) = refl
 
- 𝔹'-ind-L i = var-fixed-point-construction x (f L) eqf i
+ 𝔹'-ind-L i = fixed-point-construction x (f L) eqf i
  𝔹'-ind-C i = path-construction (f R y) (g L x) eqfg i
- 𝔹'-ind-R i = var-fixed-point-construction y (g R) eqg i
+ 𝔹'-ind-R i = fixed-point-construction y (g R) eqg i
 
 \end{code}
 
@@ -443,14 +529,7 @@ Preparation for the midpoint operation.
 
 \begin{code}
 
-
-
-\end{code}
-
-\begin{code}
-
 open import Cubical.Data.Sigma
-
 
 compatible : {X : Type ℓ} (f g : 𝔹 → X) → Type ℓ
 compatible f g = f R ≡ g L
