@@ -490,10 +490,114 @@ m = cases (l ∘ r) (r ∘ l) p
   p : l (r R) ≡ r (l L)
   p = cong l (sym eqR) ∙ eqC ∙ cong r eqL
 
-l-m-compatible : compatible (l ∘ l) (m ∘ l)
-l-m-compatible = cong l eqC
+left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
+left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl)
 
-left-by-cases : l ∼ cases (l ∘ l) (m ∘ l) l-m-compatible
-left-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) l-m-compatible l (λ x → refl) (λ x → refl)
+
+right-by-cases : r ∼ cases (m ∘ r) (r ∘ r) (cong r eqC)
+right-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqC) r (λ x → refl) (λ x → refl)
+
+is-𝓛-function : (𝔹 → 𝔹) → Type ℓ-zero
+is-𝓛-function f = compatible (l ∘ f) (m ∘ f)
+
+is-𝓡-function : (𝔹 → 𝔹) → Type ℓ-zero
+is-𝓡-function f = compatible (m ∘ f) (r ∘ f)
+
+𝓛 : (f : 𝔹 → 𝔹) → is-𝓛-function f → (𝔹 → 𝔹)
+𝓛 f = cases (l ∘ f) (m ∘ f)
+
+𝓡 : (f : 𝔹 → 𝔹) → is-𝓡-function f → (𝔹 → 𝔹)
+𝓡 f = cases (m ∘ f) (r ∘ f)
+
+preservation-𝓛𝓛 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓛-function (𝓛 f a)
+preservation-𝓛𝓛 f a b = cong l b
+
+preservation-𝓛𝓡 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓡-function (𝓛 f a)
+preservation-𝓛𝓡 f a b = cong m b
+
+preservation-𝓡𝓛 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓛-function (𝓡 f b)
+preservation-𝓡𝓛 f a b = cong m a
+
+preservation-𝓡𝓡 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓡-function (𝓡 f b)
+preservation-𝓡𝓡 f a b = cong r a
+
+is-𝓛𝓡-function : (𝔹 → 𝔹) → Type ℓ-zero
+is-𝓛𝓡-function f = is-𝓛-function f × is-𝓡-function f
+
+being-𝓛𝓡-function-is-prop : (f : 𝔹 → 𝔹) → isProp (is-𝓛𝓡-function f)
+being-𝓛𝓡-function-is-prop f = {!!} -- ×-is-prop 𝔹-is-set 𝔹-is-set
+
+F : Type ℓ-zero
+F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
+
+F-is-set : isSet F
+F-is-set = {!!} {- subsets-of-sets-are-sets (𝕄 → 𝕄) is-𝓛𝓡-function
+            (Π-is-set fe (λ _ → 𝕄-is-set))
+            (λ {f} → being-𝓛𝓡-function-is-prop f) -}
+
+𝑙 𝑟 : F → F
+𝑙 (f , (a , b)) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
+𝑟 (f , (a , b)) = 𝓡 f b , preservation-𝓡𝓛 f a b , preservation-𝓡𝓡 f a b
+
+eqm : l (r R) ≡ r (l L)
+eqm = cong l (sym eqR) ∙ eqC ∙ cong r eqL
+
+𝐿 𝑅 : F
+𝐿 = l , cong l eqC , eqm
+𝑅 = r , eqm , cong r eqC
+
+F-eq-l : 𝐿 ≡ 𝑙 𝐿
+F-eq-l = {!!} {- to-subtype-≡ being-𝓛𝓡-function-is-prop γ
+ where
+  δ : left ∼ 𝓛 left refl
+  δ = left-by-cases
+
+  γ : left ≡ 𝓛 left refl
+  γ = dfunext fe δ
+-}
+
+F-eq-lr : 𝑙 𝑅 ≡ 𝑟 𝐿
+F-eq-lr = {!!} {- to-subtype-≡ being-𝓛𝓡-function-is-prop v
+ where
+  i = λ (x : 𝕄) → 𝕄𝕄-cases (left ∘ right) (center ∘ right) refl (left x) ≡⟨ 𝕄-cases-l _ _ (𝕄-is-set , refl) x ⟩
+                  left (right x)                                           ≡⟨ (center-l x)⁻¹ ⟩
+                  center (left x)                                          ∎
+
+  ii =  λ (x : 𝕄) → 𝕄𝕄-cases (left ∘ right) (center ∘ right) refl (right x)   ≡⟨ 𝕄-cases-r _ _ (𝕄-is-set , refl) x ⟩
+                    center (right x)                                          ≡⟨ center-r x ⟩
+                    right (left x)                                            ∎
+
+  iii : 𝕄𝕄-cases (left ∘ right)  (center ∘ right) refl
+      ∼ 𝕄𝕄-cases (center ∘ left) (right ∘ left)   refl
+  iii = 𝕄-cases-uniqueness _ _ (𝕄-is-set , refl) (𝕄𝕄-cases _ _ refl) (i , ii)
+
+  iv : 𝓛 right refl ∼ 𝓡 left refl
+  iv = iii
+
+  v : 𝓛 right refl ≡ 𝓡 left refl
+  v = dfunext fe iv
+-}
+
+F-eq-r : 𝑅 ≡ 𝑟 𝑅
+F-eq-r = {!!} {- to-subtype-≡ being-𝓛𝓡-function-is-prop γ
+ where
+  δ : right ∼ 𝓡 right refl
+  δ = right-by-cases
+
+  γ : right ≡ 𝓡 right refl
+  γ = dfunext fe δ
+-}
+
+mid : 𝔹 → F
+mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 F-eq-l F-eq-lr F-eq-r
+
+_⊕_ : 𝔹 → 𝔹 → 𝔹
+x ⊕ y = fst (mid x) y
+
+⊕-property : (x : 𝔹)
+           → (l (x ⊕ R) ≡ m (x ⊕ L))
+           × (m (x ⊕ R) ≡ r (x ⊕ L))
+⊕-property x = snd (mid x)
+
 
 \end{code}
