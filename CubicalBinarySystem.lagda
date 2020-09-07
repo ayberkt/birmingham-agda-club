@@ -123,8 +123,8 @@ r' (η x) = η (right x)
 
 As opposed to the HIT construction, the binary system equations hold
 definitionally in our MLTT construction (but then other things that
-hold definitionally for the cubical HIT hold up to a path in the MLTT
-construction):
+hold definitionally for the cubical HIT only hold up to a path in the
+MLTT construction):
 
 \begin{code}
 
@@ -178,7 +178,7 @@ pair of mutually inverse maps φ and γ:
 
 \end{code}
 
-That φ is a left inverse of γ is easy, by induction on 𝔹':
+That φ is a left inverse of γ is easy, by induction on 𝔹' and 𝔻:
 
 \begin{code}
 
@@ -233,7 +233,6 @@ fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
                                                     ; (j = i0) → x
                                                     ; (j = i1) → p i })
                                            (p (i ∧ j))
-
 \end{code}
 
 These constructions are applied to obtain the following specific
@@ -282,19 +281,19 @@ Notice that a binary system homomorphism, in this ∞-setting, is a
 function that commutes not only with L, R, l, r, but also with eqL,
 eqC and eqR.
 
-We now prove that 𝔹 is a set.
+We now prove that 𝔹 is a set as explained above.
 
 \begin{code}
 
 private
  cancellr : 𝔻 → 𝔻
- cancellr center    = center -- arbitrary
+ cancellr center    = center -- arbitrary choice
  cancellr (left x)  = x
  cancellr (right x) = x
 
  cancelη : 𝔹' → 𝔻
- cancelη L'    = center -- arbitrary
- cancelη R'    = center -- arbitrary
+ cancelη L'    = center -- arbitrary choice
+ cancelη R'    = center -- arbitrary choice
  cancelη (η x) = x
 
 left-lc : {x y : 𝔻} → left x ≡ left y → x ≡ y
@@ -377,7 +376,8 @@ L'-is-not-η p = transport (cong is-L' p) *
 
 \end{code}
 
-We now consider recursion and then, more generally, induction.
+We now consider recursion and then, more generally, induction, in
+various forms, for both conceptual and practical reasons.
 
 \begin{code}
 
@@ -681,8 +681,8 @@ eqm = cong l (sym eqR) ∙ eqC ∙ cong r eqL
 𝑅 = r , eqm , cong r eqC
 
 𝑙 𝑟 : F → F
-𝑙 (f , (a , b)) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
-𝑟 (f , (a , b)) = 𝓡 f b , preservation-𝓡𝓛 f a b , preservation-𝓡𝓡 f a b
+𝑙 (f , a , b) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
+𝑟 (f , a , b) = 𝓡 f b , preservation-𝓡𝓛 f a b , preservation-𝓡𝓡 f a b
 
 eq𝐿 : 𝐿 ≡ 𝑙 𝐿
 eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
