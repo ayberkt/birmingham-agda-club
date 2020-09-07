@@ -657,37 +657,25 @@ eqm = cong l (sym eqR) ∙ eqC ∙ cong r eqL
 𝑅 = r , eqm , cong r eqC
 
 F-eq-l : 𝐿 ≡ 𝑙 𝐿
-F-eq-l = ΣProp≡ being-𝓛𝓡-function-is-prop b
+F-eq-l = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
  where
   a : l ∼ 𝓛 l (cong l eqC)
   a = left-by-cases
 
-  b : l ≡ 𝓛 l (cong l eqC)
-  b = funExt a
-
-
 F-eq-lr : 𝑙 𝑅 ≡ 𝑟 𝐿
-F-eq-lr = ΣProp≡ being-𝓛𝓡-function-is-prop v
+F-eq-lr = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt iv)
  where
   iii : cases (l ∘ r) (m ∘ r) eqm ∼ cases (m ∘ l) (r ∘ l) eqm
-  iii = cases-uniqueness (m ∘ l) (r ∘ l) eqm (cases (l ∘ r) (m ∘ r) eqm) (λ _ → refl) (λ _ → refl) λ _ → refl
+  iii = cases-uniqueness (m ∘ l) (r ∘ l) eqm (cases (l ∘ r) (m ∘ r) eqm) (λ _ → refl) (λ _ → refl) (λ _ → refl)
 
   iv : 𝓛 r eqm ∼ 𝓡 l eqm
   iv = iii
 
-  v : 𝓛 r eqm ≡ 𝓡 l eqm
-  v = funExt iv
-
-
 F-eq-r : 𝑅 ≡ 𝑟 𝑅
-F-eq-r = ΣProp≡ being-𝓛𝓡-function-is-prop b
+F-eq-r = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
  where
   a : r ∼ 𝓡 r (cong r eqC)
   a = right-by-cases
-
-  b : r ≡ 𝓡 r (cong r eqC)
-  b = funExt a
-
 
 mid : 𝔹 → F
 mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 F-eq-l F-eq-lr F-eq-r
