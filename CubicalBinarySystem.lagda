@@ -35,7 +35,6 @@ open import Cubical.Data.Empty renaming (⊥ to 𝟘)
 open import Cubical.Data.Unit renaming (Unit to 𝟙 ; tt to *)
 open import Cubical.Foundations.GroupoidLaws
 
-
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
 
@@ -124,8 +123,8 @@ r' (η x) = η (right x)
 
 As opposed to the HIT construction, the binary system equations hold
 definitionally in our MLTT construction (but then other things that
-hold definitionally for the cubical HIT will hold up to a path in the
-MLTT construction):
+hold definitionally for the cubical HIT hold up to a path in the MLTT
+construction):
 
 \begin{code}
 
@@ -324,7 +323,7 @@ center-is-not-right : {x : 𝔻} → ¬ center ≡ right x
 center-is-not-right p = transport (cong isCenter p) *
 
 𝔻-is-discrete : Discrete 𝔻
-𝔻-is-discrete center center = yes refl
+𝔻-is-discrete center    center    = yes refl
 𝔻-is-discrete center    (left y)  = no center-is-not-left
 𝔻-is-discrete center    (right y) = no center-is-not-right
 𝔻-is-discrete (left x)  center    = no (center-is-not-left ∘ sym)
@@ -474,19 +473,19 @@ module _ {ℓ    : Level}
                            (λ i → toPathP {A = λ j → P (eqC j)} eqfg i)
                            (λ i → toPathP {A = λ j → P (eqR j)} eqg i)
 
-module _ {ℓ    : Level}
-         (P    : 𝔹 → Type ℓ)
-         (P-is-prop-valued : (x : 𝔹) → isProp (P x))
-         (x    : P L)
-         (y    : P R)
-         (f    : (b : 𝔹) → P b → P (l b))
-         (g    : (b : 𝔹) → P b → P (r b))
+module _ {ℓ  : Level}
+         (P : 𝔹 → Type ℓ)
+         (p : (x : 𝔹) → isProp (P x))
+         (x : P L)
+         (y : P R)
+         (f : (b : 𝔹) → P b → P (l b))
+         (g : (b : 𝔹) → P b → P (r b))
        where
 
  𝔹-ind-prop : (b : 𝔹) → P b
- 𝔹-ind-prop = 𝔹-ind' P x y f g (P-is-prop-valued (l L) (subst P eqL x) (f L x))
-                                (P-is-prop-valued (r L) (subst P eqC (f R y)) (g L x))
-                                (P-is-prop-valued (r R) (subst P eqR y) (g R y))
+ 𝔹-ind-prop = 𝔹-ind' P x y f g (p (l L) (subst P eqL x) (f L x))
+                                (p (r L) (subst P eqC (f R y)) (g L x))
+                                (p (r R) (subst P eqR y) (g R y))
 \end{code}
 
 Induction for the MLTT construction of the initial binary system:
