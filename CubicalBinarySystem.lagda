@@ -30,7 +30,7 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
-open import Cubical.Data.Sigma.Properties
+open import Cubical.Data.Sigma
 open import Cubical.Relation.Nullary
 open import Cubical.Relation.Nullary.DecidableEq
 open import Cubical.Data.Empty renaming (⊥ to 𝟘)
@@ -522,8 +522,8 @@ This satisfies the following equations:
 
 \begin{code}
 
- 𝔹'-ind-l : (x : 𝔹') → 𝔹'-ind (l' x) ≡ f x (𝔹'-ind x)
- 𝔹'-ind-r : (x : 𝔹') → 𝔹'-ind (r' x) ≡ g x (𝔹'-ind x)
+ 𝔹'-ind-l : (b : 𝔹') → 𝔹'-ind (l' b) ≡ f b (𝔹'-ind b)
+ 𝔹'-ind-r : (b : 𝔹') → 𝔹'-ind (r' b) ≡ g b (𝔹'-ind b)
 
  𝔹'-ind-L : ∀ i → 𝔹'-ind (eqL' i) ≡ eqf i
  𝔹'-ind-C : ∀ i → 𝔹'-ind (eqC' i) ≡ eqfg i
@@ -552,8 +552,6 @@ With the following proofs:
 Definition by cases:
 
 \begin{code}
-
-open import Cubical.Data.Sigma
 
 compatible : {X : Type ℓ} (f g : 𝔹 → X) → Type ℓ
 compatible f g = f R ≡ g L
@@ -585,7 +583,6 @@ path-lemma : {X : Type ℓ}
 path-lemma h p q i j = hcomp (λ k → λ { (i = i1) → q (j ∧ k)
                                       ; (j = i0) → h (p i)
                                       ; (j = i1) → q k })
-
                              (h (p (i ∨ j)))
 
 compatible-higher : {X : Type ℓ}
@@ -716,13 +713,10 @@ eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
   a = l-by-cases
 
 eq𝐶 : 𝑙 𝑅 ≡ 𝑟 𝐿
-eq𝐶 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a')
+eq𝐶 = ΣProp≡ being-𝓛𝓡-function-is-prop a
  where
-  a : cases (l ∘ r) (m ∘ r) eqm ∼ cases (m ∘ l) (r ∘ l) eqm
-  a = cases-uniqueness (m ∘ l) (r ∘ l) eqm (cases (l ∘ r) (m ∘ r) eqm) (λ _ → refl) (λ _ → refl) (λ _ → refl)
-
-  a' : 𝓛 r eqm ∼ 𝓡 l eqm
-  a' = a
+  a : cases (l ∘ r) (m ∘ r) eqm ≡ cases (m ∘ l) (r ∘ l) eqm
+  a = refl
 
 eq𝑅 : 𝑅 ≡ 𝑟 𝑅
 eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
