@@ -479,6 +479,13 @@ module _ {ℓ    : Level}
                            (λ i → toPathP {A = λ j → P (eqC j)} eqfg i)
                            (λ i → toPathP {A = λ j → P (eqR j)} eqg i)
 
+\end{code}
+
+If P is proposition valued, then the compatibility conditions hold
+automatically and hence don't need to be supplied:
+
+\begin{code}
+
 module _ {ℓ  : Level}
          (P : 𝔹 → Type ℓ)
          (p : (x : 𝔹) → isProp (P x))
@@ -549,7 +556,8 @@ With the following proofs:
 
 \end{code}
 
-Definition by cases:
+For definition by cases, we get a simplification of the compatibility
+condition:
 
 \begin{code}
 
@@ -559,11 +567,27 @@ compatible f g = f R ≡ g L
 cases : {X : Type ℓ} (f g : 𝔹 → X) → compatible f g → (𝔹 → X)
 cases f g p L       = f L
 cases f g p R       = g R
-cases f g p (l x)   = f x
-cases f g p (r x)   = g x
+cases f g p (l b)   = f b
+cases f g p (r b)   = g b
 cases f g p (eqL i) = f L
 cases f g p (eqC i) = p i
 cases f g p (eqR i) = g R
+
+\end{code}
+
+NB. The function cases is a particular case of 𝔹-ind:
+
+\begin{code}
+
+NB-cases : {X : Type ℓ} (f g : 𝔹 → X) (p : compatible f g)
+         → cases f g p ∼ 𝔹-ind (λ _ → X) (f L) (g R) (λ b _ → f b) (λ b _ → g b) (λ i → f L) p (λ i → g R)
+NB-cases f g p L       = refl
+NB-cases f g p R       = refl
+NB-cases f g p (l b)   = refl
+NB-cases f g p (r b)   = refl
+NB-cases f g p (eqL i) = λ _ → f L
+NB-cases f g p (eqC i) = λ _ → p i
+NB-cases f g p (eqR i) = λ _ → g R
 
 \end{code}
 
@@ -608,16 +632,10 @@ cases-uniqueness : {X : Type ℓ}
                    (v : h ∘ r ∼ g)
                  → compatible-higher f g p h u v
                  → h ∼ cases f g p
-cases-uniqueness f g p h u v c L = q
- where
-  q : h L ≡ f L
-  q = cong h eqL ∙ u L
-cases-uniqueness f g p h u v c R = q
- where
-  q : h R ≡ g R
-  q = cong h eqR ∙ v R
-cases-uniqueness f g p h u v c (l x) = u x
-cases-uniqueness f g p h u v c (r x) = v x
+cases-uniqueness f g p h u v c L       = cong h eqL ∙ u L
+cases-uniqueness f g p h u v c R       = cong h eqR ∙ v R
+cases-uniqueness f g p h u v c (l x)   = u x
+cases-uniqueness f g p h u v c (r x)   = v x
 cases-uniqueness f g p h u v c (eqL i) = path-lemma h eqL (u L) i
 cases-uniqueness f g p h u v c (eqC i) = c i
 cases-uniqueness f g p h u v c (eqR i) = path-lemma h eqR (v R) i
@@ -650,11 +668,11 @@ function _⊕_ : 𝔹 → 𝔹 → B, which is our desired midpoint operation.
 
 \begin{code}
 
+eqm : l (r R) ≡ r (l L)
+eqm = cong l (sym eqR) ∙∙ eqC ∙∙ cong r eqL
+
 m : 𝔹 → 𝔹
-m = cases (l ∘ r) (r ∘ l) p
- where
-  p : l (r R) ≡ r (l L)
-  p = cong l (sym eqR) ∙∙ eqC ∙∙ cong r eqL
+m = cases (l ∘ r) (r ∘ l) eqm
 
 l-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
 l-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl) (λ i → refl)
@@ -695,9 +713,6 @@ being-𝓛𝓡-function-is-prop f = isProp× (𝔹-is-set (l (f R)) (m (f L))) (
 F : Type₀
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 
-eqm : l (r R) ≡ r (l L)
-eqm = cong l (sym eqR) ∙ eqC ∙ cong r eqL
-
 𝐿 𝑅 : F
 𝐿 = l , cong l eqC , eqm
 𝑅 = r , eqm , cong r eqC
@@ -733,7 +748,6 @@ _⊕_ is as follows:
 
 mid : 𝔹 → F
 mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 eq𝐿 eq𝐶 eq𝑅
-
 _⊕_ : 𝔹 → 𝔹 → 𝔹
 x ⊕ y = fst (mid x) y
 
