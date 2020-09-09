@@ -27,6 +27,7 @@ and MLTT definitions of the initial binary system.
 module CubicalBinarySystem where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Function
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
@@ -46,18 +47,15 @@ Our preamble:
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
 
+id : {X : Type ℓ} → X → X
+id = idfun _
+
 Sigma : (X : Type ℓ) (A : X → Type ℓ') → Type (ℓ-max ℓ ℓ')
 Sigma = Σ
 
 syntax Sigma X (λ x → a) = Σ x ꞉ X , a
 infixr -1 Sigma
 
-_∘_ : {X : Type ℓ₀} {Y : Type ℓ₁} {Z : Y → Type ℓ₂}
-    → ((y : Y) → Z y)
-    → (f : X → Y) (x : X) → Z (f x)
-g ∘ f = λ x → g(f x)
-
-infixl 5 _∘_
 
 _∼_ : {X : Type ℓ} {A : X → Type ℓ'}
     → ((x : X) → A x)
@@ -71,7 +69,7 @@ infix  4  _∼_
 
 The initial binary system as a HIT:
 
-x\begin{code}
+\begin{code}
 
 data 𝔹 : Type₀ where
   L R : 𝔹
@@ -499,6 +497,53 @@ module _ {ℓ  : Level}
  𝔹-ind-prop = 𝔹-ind' P x y f g (p (l L) (subst P eqL x) (f L x))
                                 (p (r L) (subst P eqC (f R y)) (g L x))
                                 (p (r R) (subst P eqR y) (g R y))
+
+module _ (f g : 𝔹 → 𝔹)
+         (p : f L ≡ g L)
+         (q : f R ≡ g R)
+         (u : (b : 𝔹) → f b ≡ g b → f (l b) ≡ g (l b))
+         (v : (b : 𝔹) → f b ≡ g b → f (r b) ≡ g (r b))
+       where
+
+ 𝔹-ind-eq : (b : 𝔹) → f b ≡ g b
+ 𝔹-ind-eq = 𝔹-ind-prop (λ b → f b ≡ g b)
+                        (λ b → 𝔹-is-set (f b) (g b))
+                        p q u v
+
+module _ {ℓ  : Level}
+         (P : 𝔹 → Type ℓ)
+         (p : (x : 𝔹) → isProp (P x))
+         (f : (b : 𝔹) → P (l b))
+         (g : (b : 𝔹) → P (r b))
+       where
+
+ 𝔹-cases : (b : 𝔹) → P b
+ 𝔹-cases = 𝔹-ind-prop P p (subst P (sym eqL) (f L))
+                           (subst P (sym eqR) (g R))
+                           (λ b _ → f b)
+                           (λ b _ → g b)
+
+module _ (f g : 𝔹 → 𝔹)
+         (u : (b : 𝔹) → f (l b) ≡ g (l b))
+         (v : (b : 𝔹) → f (r b) ≡ g (r b))
+       where
+
+ 𝔹-cases-eq : (b : 𝔹) → f b ≡ g b
+ 𝔹-cases-eq = 𝔹-cases (λ b → f b ≡ g b) (λ b → 𝔹-is-set (f b) (g b)) u v
+
+module _ (f g : 𝔹 → 𝔹 → 𝔹)
+         (ll : (b c : 𝔹) → f (l b) (l c) ≡ g (l b) (l c))
+         (lr : (b c : 𝔹) → f (l b) (r c) ≡ g (l b) (r c))
+         (rl : (b c : 𝔹) → f (r b) (l c) ≡ g (r b) (l c))
+         (rr : (b c : 𝔹) → f (r b) (r c) ≡ g (r b) (r c))
+       where
+
+ 𝔹-cases-eq₂ : (b c : 𝔹) → f b c ≡ g b c
+ 𝔹-cases-eq₂ = 𝔹-cases (λ b → ∀ c → f b c ≡ g b c)
+                        (λ b → isPropΠ (λ x → 𝔹-is-set _ _))
+                        (λ b → 𝔹-cases-eq (f (l b)) (g (l b)) (ll b) (lr b))
+                        (λ b → 𝔹-cases-eq (f (r b)) (g (r b)) (rl b) (rr b))
+
 \end{code}
 
 Induction for the MLTT construction of the initial binary system:
@@ -512,7 +557,7 @@ module _ {ℓ    : Level}
          (f    : (b : 𝔹') → P b → P (l' b))
          (g    : (b : 𝔹') → P b → P (r' b))
          (eqf  : x ≡ f L' x)      -- This is possible only because
-         (eqfg : f R' y ≡ g L' x) -- the equations L' ≡ l' L' and r' L' ≡ l' R'
+         (eqfg : f R' y ≡ g L' x) -- the equations L' ≡ l' L' and l' R' ≡ r' L'
          (eqg  : y ≡ g R' y)      -- and R' ≡ r' R' hold definitionally.
        where
 
@@ -525,7 +570,7 @@ module _ {ℓ    : Level}
 
 \end{code}
 
-This satisfies the following equations:
+This satisfies the following equations, but not definitionally:
 
 \begin{code}
 
@@ -580,7 +625,7 @@ NB. The function cases is a particular case of 𝔹-ind:
 \begin{code}
 
 NB-cases : {X : Type ℓ} (f g : 𝔹 → X) (p : compatible f g)
-         → cases f g p ∼ 𝔹-ind (λ _ → X) (f L) (g R) (λ b _ → f b) (λ b _ → g b) (λ i → f L) p (λ i → g R)
+         → cases f g p ∼ 𝔹-ind (λ _ → X) (f L) (g R) (λ b _ → f b) (λ b _ → g b) (λ _ → f L) p (λ _ → g R)
 NB-cases f g p L       = refl
 NB-cases f g p R       = refl
 NB-cases f g p (l b)   = refl
@@ -642,7 +687,8 @@ cases-uniqueness f g p h u v c (eqR i) = path-lemma h eqR (v R) i
 
 \end{code}
 
-Then the set version is a special case of the ∞-version:
+When X is a set, the higher compatibility condition holds
+automatically and hence doesn't need to be supplied:
 
 \begin{code}
 
@@ -654,8 +700,136 @@ cases-uniqueness-set : {X : Type ℓ}
                        (v : h ∘ r ∼ g)
                      → isSet X
                      → h ∼ cases f g p
-cases-uniqueness-set f g p h u v isSetX =
-  cases-uniqueness f g p h u v (isSet→isSet' isSetX (u R) (v L) (cong h eqC) p)
+cases-uniqueness-set f g p h u v isSetX = cases-uniqueness f g p h u v c
+  where
+   c : Square (u R) (v L) (λ i → h (eqC i)) p
+   c = isSet→isSet' isSetX (u R) (v L) (cong h eqC) p
+
+\end{code}
+
+We now prove some fundamental properties of 𝔹.
+
+\begin{code}
+
+mirror : 𝔹 → 𝔹
+mirror = 𝔹-rec R L r l eqR (sym eqC) eqL
+
+mirror-involutive : (x : 𝔹) → mirror (mirror x) ≡ x
+mirror-involutive = 𝔹-ind-eq (mirror ∘ mirror) id
+                       refl
+                       refl
+                       (λ x → cong l)
+                       (λ y → cong r)
+
+linv : 𝔹 → 𝔹
+linv = cases id (λ _ → R) refl
+
+linv-defining-equations :
+     (linv L   ≡ L)
+   × (linv R   ≡ R)
+   × (linv ∘ l ≡ id )
+   × (linv ∘ r ≡ λ _ → R)
+linv-defining-equations = refl , refl , refl , refl
+
+rinv : 𝔹 → 𝔹
+rinv = cases (λ _ → L) id refl
+
+rinv-defining-equations :
+     (rinv L   ≡ L)
+   × (rinv R   ≡ R)
+   × (rinv ∘ l ≡ λ _ → L)
+   × (rinv ∘ r ≡ id)
+rinv-defining-equations = refl , refl , refl , refl
+
+l-lc : {x y : 𝔹} → l x ≡ l y → x ≡ y
+l-lc = cong linv
+
+r-lc : {x y : 𝔹} → r x ≡ r y → x ≡ y
+r-lc = cong rinv
+
+M : 𝔹
+M = l R
+
+the-only-point-mapped-to-M-by-l-is-R : {x : 𝔹} → l x ≡ M → x ≡ R
+the-only-point-mapped-to-M-by-l-is-R = l-lc
+
+the-only-point-mapped-to-M-by-r-is-L : {x : 𝔹} → r x ≡ M → x ≡ L
+the-only-point-mapped-to-M-by-r-is-L p = r-lc (p ∙ eqC)
+
+lr-common-image : {x y : 𝔹} → l x ≡ r y → (x ≡ R) × (y ≡ L)
+lr-common-image p = cong linv p , cong rinv (sym p)
+
+the-only-fixed-point-of-l-is-L : (x : 𝔹) → l x ≡ x → x ≡ L
+the-only-fixed-point-of-l-is-L = 𝔹-ind-prop
+                                   (λ x → l x ≡ x → x ≡ L )
+                                   (λ x → isPropΠ λ _ → 𝔹-is-set _ _)
+                                   a b f g
+ where
+  a : l L ≡ L → L ≡ L
+  a _ = refl
+
+  b : l R ≡ R → R ≡ L
+  b p = snd s
+   where
+    q : l R ≡ r R
+    q = p ∙ eqR
+    s : (R ≡ R) × (R ≡ L)
+    s = lr-common-image q
+
+  f : (x : 𝔹) → (l x ≡ x → x ≡ L) → l (l x) ≡ l x → l x ≡ L
+  f x ϕ p = cong l s ∙ sym eqL
+   where
+    q : l x ≡ x
+    q = l-lc p
+    s : x ≡ L
+    s = ϕ q
+
+  g : (x : 𝔹) → (l x ≡ x → x ≡ L) → l (r x) ≡ r x → r x ≡ L
+  g x _ p = r x ≡⟨ fst q ⟩
+            R   ≡⟨ s ⟩
+            x   ≡⟨ snd q ⟩
+            L   ∎
+   where
+    q : (r x ≡ R) × (x ≡ L)
+    q = lr-common-image p
+    s : R ≡ x
+    s = sym (r-lc (fst q ∙ eqR))
+
+
+the-only-fixed-point-of-r-is-R : (x : 𝔹) → r x ≡ x → x ≡ R
+the-only-fixed-point-of-r-is-R x p = sym (mirror-involutive x) ∙ t
+ where
+  q : l (mirror x) ≡ mirror x
+  q = cong mirror p
+
+  s : mirror x ≡ L
+  s = the-only-fixed-point-of-l-is-L (mirror x) q
+
+  t : mirror (mirror x) ≡ R
+  t = cong mirror s
+
+is-L : 𝔹 → Type₀
+is-L = 𝔹-rec 𝟙 𝟘 id (λ X → 𝟘) refl refl refl
+
+is-L-defining-equations :
+     (is-L   L ≡ 𝟙)
+   × (is-L   R ≡ 𝟘)
+   × (is-L ∘ l ≡ is-L)
+   × (is-L ∘ r ≡ λ _ → 𝟘)
+is-L-defining-equations = refl , refl , refl , refl
+
+L-is-not-R : ¬ L ≡ R
+L-is-not-R p = transport (cong is-L p) *
+
+is-R : 𝔹 → Type₀
+is-R = 𝔹-rec 𝟘 𝟙 (λ X → 𝟘) id refl refl refl
+
+is-R-defining-equations :
+     (is-R   L ≡ 𝟘)
+   × (is-R   R ≡ 𝟙)
+   × (is-R ∘ l ≡ λ _ → 𝟘)
+   × (is-R ∘ r ≡ is-R)
+is-R-defining-equations = refl , refl , refl , refl
 
 \end{code}
 
@@ -668,11 +842,17 @@ function _⊕_ : 𝔹 → 𝔹 → B, which is our desired midpoint operation.
 
 \begin{code}
 
-eqm : l (r R) ≡ r (l L)
-eqm = cong l (sym eqR) ∙∙ eqC ∙∙ cong r eqL
+m-compatibility : l (r R) ≡ r (l L)
+m-compatibility = cong l (sym eqR) ∙∙ eqC ∙∙ cong r eqL
 
 m : 𝔹 → 𝔹
-m = cases (l ∘ r) (r ∘ l) eqm
+m = cases (l ∘ r) (r ∘ l) m-compatibility
+
+m-defining-equations : (m L   ≡ l (r L))
+                     × (m R   ≡ r (l R))
+                     × (m ∘ l ≡ l ∘ r)
+                     × (m ∘ r ≡ r ∘ l)
+m-defining-equations = refl , refl , refl , refl
 
 l-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
 l-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl) (λ i → refl)
@@ -714,8 +894,8 @@ F : Type₀
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 
 𝐿 𝑅 : F
-𝐿 = l , cong l eqC , eqm
-𝑅 = r , eqm , cong r eqC
+𝐿 = l , cong l eqC , m-compatibility
+𝑅 = r , m-compatibility , cong r eqC
 
 𝑙 𝑟 : F → F
 𝑙 (f , a , b) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
@@ -730,7 +910,8 @@ eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
 eq𝐶 : 𝑙 𝑅 ≡ 𝑟 𝐿
 eq𝐶 = ΣProp≡ being-𝓛𝓡-function-is-prop a
  where
-  a : cases (l ∘ r) (m ∘ r) eqm ≡ cases (m ∘ l) (r ∘ l) eqm
+  a : cases (l ∘ r) (m ∘ r) m-compatibility
+    ≡ cases (m ∘ l) (r ∘ l) m-compatibility
   a = refl
 
 eq𝑅 : 𝑅 ≡ 𝑟 𝑅
@@ -775,19 +956,38 @@ By construction, the following equations hold:
    × (  r x ⊕ r y ≡ r (x ⊕ y)  )
 ⊕-defining-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
 
+minv : 𝔹 → 𝔹
+minv = cases
+          (cases (λ _ → L) l eqL)
+          (cases r (λ _ → R) (sym eqR))
+          eqC
+
+minv-is-left-inv : (x : 𝔹) → minv (m x) ≡ x
+minv-is-left-inv = 𝔹-cases-eq _ _ (λ b → refl) λ b → refl
+
 \end{code}
 
-We now prove the midpoint algebra equations for _⊕_:
+The function minv satisfies the ES-axioms for a double function:
 
 \begin{code}
+
+minv-C : (x : 𝔹) → minv ((L ⊕ R) ⊕ x) ≡ x
+minv-C = 𝔹-cases-eq _ _ (λ x → refl) (λ x → refl)
+
+minv-L : (x : 𝔹) → minv (L ⊕ (L ⊕ x)) ≡ L
+minv-L x = refl
+
+minv-R : (x : 𝔹) → minv (R ⊕ (R ⊕ x)) ≡ R
+minv-R x = refl
+
 
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
 ⊕-idemp = 𝔹-ind-prop (λ x → x ≡ x ⊕ x)
                       (λ x → 𝔹-is-set x (x ⊕ x))
                       eqL
                       eqR
-                      (λ (x : 𝔹) (p : x ≡ x ⊕ x) → cong l p)
-                      (λ (x : 𝔹) (p : x ≡ x ⊕ x) → cong r p)
+                      (λ x → cong l)
+                      (λ x → cong r)
 
 ⊕-comm : (x y : 𝔹) → x ⊕ y ≡ y ⊕ x
 ⊕-comm = 𝔹-ind-prop (λ x → ∀ y → x ⊕ y ≡ y ⊕ x)
@@ -802,8 +1002,8 @@ We now prove the midpoint algebra equations for _⊕_:
                          (λ x → 𝔹-is-set (L ⊕ x) (x ⊕ L))
                          refl
                          eqC
-                         (λ y p → cong l p)
-                         (λ y p → cong m p)
+                         (λ y → cong l)
+                         (λ y → cong m)
 
   R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
   R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
@@ -840,6 +1040,55 @@ We now prove the midpoint algebra equations for _⊕_:
                        R ⊕ r x ∎)
                       (λ y _ → cong m (h y))
                       (λ y _ → cong r (h y))
+
+M-charac : M ≡ L ⊕ R
+M-charac = refl
+
+m-charac : m ∼ M ⊕_
+m-charac = 𝔹-cases-eq _ _
+             (λ x → refl)
+             (λ x → refl)
+
+switch-l-m : (a b : 𝔹) → l a ⊕ m b ≡ m a ⊕ l b
+switch-r-m : (a b : 𝔹) → r a ⊕ m b ≡ m a ⊕ r b
+
+switch-l-m = 𝔹-cases-eq₂ _ _
+               (λ a b → refl)
+               (λ a b → refl)
+               (λ a b → refl)
+               (λ a b → refl)
+
+switch-r-m = 𝔹-cases-eq₂ _ _
+               (λ a b → refl)
+               (λ a b → refl)
+               (λ a b → refl)
+               (λ a b → refl)
+
+
+LM-lemma : (x : 𝔹) → (L ⊕ M) ⊕ (M ⊕ x) ≡ L ⊕ (R ⊕ x)
+LM-lemma = 𝔹-cases-eq (λ x → (L ⊕ M) ⊕ (M ⊕ x)) (λ x → L ⊕ (R ⊕ x))
+             (λ b → refl)
+             (λ b → refl)
+
+LM-transp : (x y : 𝔹) → (L ⊕ M) ⊕ (x ⊕ y) ≡ (L ⊕ x) ⊕ (M ⊕ y)
+LM-transp = 𝔹-cases-eq₂ (λ x y → (L ⊕ M) ⊕ (x ⊕ y)) (λ x y → (L ⊕ x) ⊕ (M ⊕ y))
+              (λ x y → refl)
+              (λ x y → LM-lemma (x ⊕ y))
+              (λ x y → LM-lemma (x ⊕ y))
+              (λ x y → refl)
+
+LL-transp : (x y : 𝔹) → (L ⊕ L) ⊕ (x ⊕ y) ≡ (L ⊕ x) ⊕ (L ⊕ y)
+LL-transp x y = cong (_⊕ (x ⊕ y)) (sym (⊕-idemp L))
+
+LR-transp : (x y : 𝔹) → (L ⊕ R) ⊕ (x ⊕ y) ≡ (L ⊕ x) ⊕ (R ⊕ y)
+LR-transp x y = refl
+
+RL-transp : (x y : 𝔹) → (R ⊕ L) ⊕ (x ⊕ y) ≡ (R ⊕ x) ⊕ (L ⊕ y)
+RL-transp x y = refl
+
+RR-transp : (x y : 𝔹) → (R ⊕ R) ⊕ (x ⊕ y) ≡ (R ⊕ x) ⊕ (R ⊕ y)
+RR-transp x y = cong (_⊕ (x ⊕ y)) (sym (⊕-idemp R))
+
 \end{code}
 
 TODO. The transposition axiom (a ⊕ b) ⊕ (x ⊕ y) ≡ (a ⊕ x) ⊕ (b ⊕ y).
@@ -1004,6 +1253,7 @@ mid3idem (eqL i) = eqLNat i
 mid3idem (eqC i) j = coherence-lem j i
 mid3idem (eqR i) = eqRNat i
 
+{-
 mid3comm : ∀ x y → mid3 x y ≡ mid3 y x
 mid3comm L L = refl
 mid3comm L R = eqC
@@ -1036,5 +1286,6 @@ mid3comm (r x) (eqR i) = cong r (mid3comm x R)
 mid3comm (eqL i) y = {!!}
 mid3comm (eqC i) y = {!!}
 mid3comm (eqR i) y = {!!}
+-}
 
 \end{code}
