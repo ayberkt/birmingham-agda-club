@@ -956,11 +956,17 @@ By construction, the following equations hold:
    × (  r x ⊕ r y ≡ r (x ⊕ y)  )
 ⊕-defining-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
 
+\end{code}
+
+Digression:
+
+\begin{code}
+
 minv : 𝔹 → 𝔹
 minv = cases
-          (cases (λ _ → L) l eqL)
-          (cases r (λ _ → R) (sym eqR))
-          eqC
+        (cases (λ _ → L) l eqL)
+        (cases r (λ _ → R) (sym eqR))
+        eqC
 
 minv-is-left-inv : (x : 𝔹) → minv (m x) ≡ x
 minv-is-left-inv = 𝔹-cases-eq _ _ (λ b → refl) λ b → refl
@@ -979,7 +985,6 @@ minv-L x = refl
 
 minv-R : (x : 𝔹) → minv (R ⊕ (R ⊕ x)) ≡ R
 minv-R x = refl
-
 
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
 ⊕-idemp = 𝔹-ind-prop (λ x → x ≡ x ⊕ x)
@@ -1049,32 +1054,31 @@ m-charac = 𝔹-cases-eq _ _
              (λ x → refl)
              (λ x → refl)
 
-switch-l-m : (a b : 𝔹) → l a ⊕ m b ≡ m a ⊕ l b
-switch-r-m : (a b : 𝔹) → r a ⊕ m b ≡ m a ⊕ r b
+\end{code}
 
-switch-l-m = 𝔹-cases-eq₂ _ _
-               (λ a b → refl)
-               (λ a b → refl)
-               (λ a b → refl)
-               (λ a b → refl)
+Hence we shouldn't use m from now on, and we should also avoid l and r
+in favour of L ⊕_ and R ⊕_.
 
-switch-r-m = 𝔹-cases-eq₂ _ _
-               (λ a b → refl)
-               (λ a b → refl)
-               (λ a b → refl)
-               (λ a b → refl)
-
+\begin{code}
 
 LM-lemma : (x : 𝔹) → (L ⊕ M) ⊕ (M ⊕ x) ≡ L ⊕ (R ⊕ x)
-LM-lemma = 𝔹-cases-eq (λ x → (L ⊕ M) ⊕ (M ⊕ x)) (λ x → L ⊕ (R ⊕ x))
-             (λ b → refl)
-             (λ b → refl)
+LM-lemma = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
 
 LM-transp : (x y : 𝔹) → (L ⊕ M) ⊕ (x ⊕ y) ≡ (L ⊕ x) ⊕ (M ⊕ y)
-LM-transp = 𝔹-cases-eq₂ (λ x y → (L ⊕ M) ⊕ (x ⊕ y)) (λ x y → (L ⊕ x) ⊕ (M ⊕ y))
+LM-transp = 𝔹-cases-eq₂ _ _
               (λ x y → refl)
               (λ x y → LM-lemma (x ⊕ y))
               (λ x y → LM-lemma (x ⊕ y))
+              (λ x y → refl)
+
+RM-lemma : (x : 𝔹) → (R ⊕ M) ⊕ (M ⊕ x) ≡ R ⊕ (L ⊕ x)
+RM-lemma = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
+
+RM-transp : (x y : 𝔹) → (R ⊕ M) ⊕ (x ⊕ y) ≡ (R ⊕ x) ⊕ (M ⊕ y)
+RM-transp = 𝔹-cases-eq₂ _ _
+              (λ x y → refl)
+              (λ x y → RM-lemma (x ⊕ y))
+              (λ x y → RM-lemma (x ⊕ y))
               (λ x y → refl)
 
 LL-transp : (x y : 𝔹) → (L ⊕ L) ⊕ (x ⊕ y) ≡ (L ⊕ x) ⊕ (L ⊕ y)
