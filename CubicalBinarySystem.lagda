@@ -987,12 +987,11 @@ minv-R : (x : 𝔹) → minv (R ⊕ (R ⊕ x)) ≡ R
 minv-R x = refl
 
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
-⊕-idemp = 𝔹-ind-prop (λ x → x ≡ x ⊕ x)
-                      (λ x → 𝔹-is-set x (x ⊕ x))
-                      eqL
-                      eqR
-                      (λ x → cong l)
-                      (λ x → cong r)
+⊕-idemp = 𝔹-ind-eq _ _
+            eqL
+            eqR
+            (λ x → cong l)
+            (λ x → cong r)
 
 ⊕-comm : (x y : 𝔹) → x ⊕ y ≡ y ⊕ x
 ⊕-comm = 𝔹-ind-prop (λ x → ∀ y → x ⊕ y ≡ y ⊕ x)
@@ -1003,48 +1002,44 @@ minv-R x = refl
                      g
  where
   L-⊕-comm : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
-  L-⊕-comm = 𝔹-ind-prop (λ y → L ⊕ y ≡ y ⊕ L)
-                         (λ x → 𝔹-is-set (L ⊕ x) (x ⊕ L))
-                         refl
-                         eqC
-                         (λ y → cong l)
-                         (λ y → cong m)
+  L-⊕-comm = 𝔹-ind-eq _ _
+              refl
+              eqC
+              (λ y → cong l)
+              (λ y → cong m)
 
   R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
-  R-⊕-comm = 𝔹-ind-prop (λ y → R ⊕ y ≡ y ⊕ R)
-                         (λ x → 𝔹-is-set (R ⊕ x) (x ⊕ R))
-                         (sym eqC)
-                         refl
-                         (λ y p → cong m p)
-                         (λ y p → cong r p)
+  R-⊕-comm = 𝔹-ind-eq _ _
+              (sym eqC)
+              refl
+              (λ y p → cong m p)
+              (λ y p → cong r p)
 
   f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
-  f x h = 𝔹-ind-prop (λ y → l x ⊕ y ≡ y ⊕ l x)
-                      (λ y → 𝔹-is-set (l x ⊕ y) (y ⊕ l x))
-                      (l x ⊕ L   ≡⟨ refl ⟩
-                       l (x ⊕ L) ≡⟨ cong l (h L) ⟩
-                       l (L ⊕ x) ≡⟨ refl ⟩
-                       L ⊕ l x   ∎)
-                      (l x ⊕ R   ≡⟨ refl ⟩
-                       m (x ⊕ R) ≡⟨ cong m (h R) ⟩
-                       m (R ⊕ x) ≡⟨ refl ⟩
-                       R ⊕ l x   ∎)
-                      (λ y _ → cong l (h y))
-                      (λ y _ → cong m (h y))
+  f x h = 𝔹-ind-eq _ _
+           (l x ⊕ L   ≡⟨ refl ⟩
+            l (x ⊕ L) ≡⟨ cong l (h L) ⟩
+            l (L ⊕ x) ≡⟨ refl ⟩
+            L ⊕ l x   ∎)
+           (l x ⊕ R   ≡⟨ refl ⟩
+            m (x ⊕ R) ≡⟨ cong m (h R) ⟩
+            m (R ⊕ x) ≡⟨ refl ⟩
+            R ⊕ l x   ∎)
+           (λ y _ → cong l (h y))
+           (λ y _ → cong m (h y))
 
   g : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → r x ⊕ y ≡ y ⊕ r x
-  g x h = 𝔹-ind-prop (λ y → r x ⊕ y ≡ y ⊕ r x)
-                      (λ y → 𝔹-is-set (r x ⊕ y) (y ⊕ r x))
-                      (r x ⊕ L   ≡⟨ refl ⟩
-                       m (x ⊕ L) ≡⟨ cong m (h L) ⟩
-                       m (L ⊕ x) ≡⟨ refl ⟩
-                       L ⊕ r x   ∎)
-                      (r x ⊕ R   ≡⟨ refl ⟩
-                       r (x ⊕ R) ≡⟨ cong r (h R) ⟩
-                       r (R ⊕ x) ≡⟨ refl ⟩
-                       R ⊕ r x ∎)
-                      (λ y _ → cong m (h y))
-                      (λ y _ → cong r (h y))
+  g x h = 𝔹-ind-eq _ _
+           (r x ⊕ L   ≡⟨ refl ⟩
+            m (x ⊕ L) ≡⟨ cong m (h L) ⟩
+            m (L ⊕ x) ≡⟨ refl ⟩
+            L ⊕ r x   ∎)
+           (r x ⊕ R   ≡⟨ refl ⟩
+            r (x ⊕ R) ≡⟨ cong r (h R) ⟩
+            r (R ⊕ x) ≡⟨ refl ⟩
+            R ⊕ r x ∎)
+           (λ y _ → cong m (h y))
+           (λ y _ → cong r (h y))
 
 M-charac : M ≡ L ⊕ R
 M-charac = refl
