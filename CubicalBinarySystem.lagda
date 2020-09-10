@@ -1033,7 +1033,9 @@ mirror-m : (x : 𝔹) → mirror (m x) ≡ m (mirror x)
 mirror-m = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
 
 mirror-⊕ : (x y : 𝔹) → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y
-mirror-⊕ = 𝔹-ind-prop (λ x → ∀ y → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y) (λ x → isPropΠ (λ y → 𝔹-is-set _ _))
+mirror-⊕ = 𝔹-ind-prop
+             (λ x → ∀ y → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y)
+             (λ x → isPropΠ (λ y → 𝔹-is-set _ _))
              (λ y → refl)
              (λ y → refl)
              (λ x f → 𝔹-cases-eq _ _
