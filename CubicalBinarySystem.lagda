@@ -762,7 +762,7 @@ lr-common-image p = cong linv p , cong rinv (sym p)
 the-only-fixed-point-of-l-is-L : (x : 𝔹) → l x ≡ x → x ≡ L
 the-only-fixed-point-of-l-is-L = 𝔹-ind-prop
                                    (λ x → l x ≡ x → x ≡ L )
-                                   (λ x → isPropΠ λ _ → 𝔹-is-set _ _)
+                                   (λ x → isPropΠ (λ _ → 𝔹-is-set _ _))
                                    a b f g
  where
   a : l L ≡ L → L ≡ L
@@ -888,7 +888,7 @@ is-𝓛𝓡-function : (𝔹 → 𝔹) → Type₀
 is-𝓛𝓡-function f = is-𝓛-function f × is-𝓡-function f
 
 being-𝓛𝓡-function-is-prop : (f : 𝔹 → 𝔹) → isProp (is-𝓛𝓡-function f)
-being-𝓛𝓡-function-is-prop f = isProp× (𝔹-is-set (l (f R)) (m (f L))) (𝔹-is-set (m (f R)) (r (f L)))
+being-𝓛𝓡-function-is-prop f = isProp× (𝔹-is-set _ _) (𝔹-is-set _ _)
 
 F : Type₀
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
@@ -1016,18 +1016,14 @@ minv-R x = refl
               (λ y p → cong r p)
 
   f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
-  f x h = 𝔹-ind-eq _ _
-           (cong l (h L))
-           (cong m (h R))
-           (λ y _ → cong l (h y))
-           (λ y _ → cong m (h y))
+  f x h = 𝔹-cases-eq _ _
+           (λ y → cong l (h y))
+           (λ y → cong m (h y))
 
   g : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → r x ⊕ y ≡ y ⊕ r x
-  g x h = 𝔹-ind-eq _ _
-           (cong m (h L))
-           (cong r (h R))
-           (λ y _ → cong m (h y))
-           (λ y _ → cong r (h y))
+  g x h = 𝔹-cases-eq _ _
+           (λ y → cong m (h y))
+           (λ y → cong r (h y))
 
 mirror-m : (x : 𝔹) → mirror (m x) ≡ m (mirror x)
 mirror-m = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
@@ -1063,6 +1059,9 @@ Hence we shouldn't use m from now on, and we should also avoid l and r
 in favour of L ⊕_ and R ⊕_.
 
 \begin{code}
+
+mirror-M : M ≡ mirror M
+mirror-M = eqC
 
 LM-lemma : (x : 𝔹) → (L ⊕ M) ⊕ (M ⊕ x) ≡ L ⊕ (R ⊕ x)
 LM-lemma = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
