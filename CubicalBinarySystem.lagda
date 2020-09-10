@@ -929,6 +929,13 @@ _⊕_ is as follows:
 
 mid : 𝔹 → F
 mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 eq𝐿 eq𝐶 eq𝑅
+mid-definition-equations :
+    (mid   L ≡ 𝐿 )
+  × (mid   R ≡ 𝑅)
+  × (mid ∘ l ≡ 𝑙 ∘ mid)
+  × (mid ∘ r ≡ 𝑟 ∘ mid)
+mid-definition-equations = refl , refl , refl , refl
+
 _⊕_ : 𝔹 → 𝔹 → 𝔹
 x ⊕ y = fst (mid x) y
 
@@ -968,8 +975,40 @@ minv = cases
         (cases r (λ _ → R) (sym eqR))
         eqC
 
-minv-is-left-inv : (x : 𝔹) → minv (m x) ≡ x
-minv-is-left-inv = 𝔹-cases-eq _ _ (λ b → refl) λ b → refl
+minv-defining-equations :
+     (minv L ≡ L)
+   × (minv R ≡ R)
+   × (minv ∘ l ∘ l ≡ λ _ → L)
+   × (minv ∘ l ∘ r ≡ l)
+   × (minv ∘ r ∘ l ≡ r)
+   × (minv ∘ r ∘ r ≡ λ _ → R)
+minv-defining-equations = refl , refl , refl , refl , refl , refl
+
+minv-is-left-inv : {x : 𝔹} → minv (m x) ≡ x
+minv-is-left-inv {x} = 𝔹-cases-eq (minv ∘ m) id (λ b → refl) (λ b → refl) x
+
+m-lc : {x y : 𝔹} → m x ≡ m y → x ≡ y
+m-lc p = sym (minv-is-left-inv) ∙ cong minv p ∙ minv-is-left-inv
+
+m-ll-common-image : (x y : 𝔹) → m x ≡ l (l y) → (x ≡ L) × (y ≡ R)
+m-ll-common-image x y p = u , v
+ where
+  u : x ≡ L
+  u = sym minv-is-left-inv ∙ cong minv p
+  q : l (l y) ≡ m L
+  q = sym p ∙ cong m u
+  v : y ≡ R
+  v = cong (linv ∘ linv) q
+
+m-rr-common-image : (x y : 𝔹) → m x ≡ r (r y) → (x ≡ R) × (y ≡ L)
+m-rr-common-image x y p = u , v
+ where
+  u : x ≡ R
+  u = sym minv-is-left-inv ∙ cong minv p
+  q : r (r y) ≡ m R
+  q = sym p ∙ cong m u
+  v : y ≡ L
+  v = cong (rinv ∘ rinv) q
 
 \end{code}
 
@@ -985,6 +1024,27 @@ minv-L x = refl
 
 minv-R : (x : 𝔹) → minv (R ⊕ (R ⊕ x)) ≡ R
 minv-R x = refl
+
+\end{code}
+
+Truncated addition and subtraction:
+
+\begin{code}
+
+_+ᵗ_ : 𝔹 → 𝔹 → 𝔹
+x +ᵗ y = minv (x ⊕ y)
+
+_⊖_ : 𝔹 → 𝔹 → 𝔹
+x ⊖ y = x ⊕ mirror y
+
+_-ᵗ_ : 𝔹 → 𝔹 → 𝔹
+x -ᵗ y = minv (x ⊖ y)
+
+\end{code}
+
+We now return to properties of midpoint:
+
+\begin{code}
 
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
 ⊕-idemp = 𝔹-ind-eq _ _
@@ -1258,40 +1318,5 @@ mid3idem (r x) = cong r (mid3idem x)
 mid3idem (eqL i) = eqLNat i
 mid3idem (eqC i) j = coherence-lem j i
 mid3idem (eqR i) = eqRNat i
-
-{-
-mid3comm : ∀ x y → mid3 x y ≡ mid3 y x
-mid3comm L L = refl
-mid3comm L R = eqC
-mid3comm L (l y) = cong l (mid3comm L y)
-mid3comm L (r y) = cong m (mid3comm L y)
-mid3comm L (eqL i) = refl
-mid3comm L (eqC i) j = l (eqC (i ∨ j))
-mid3comm L (eqR i) = coherence-lem i
-mid3comm R L = sym eqC
-mid3comm R R = refl
-mid3comm R (l y) = cong m (mid3comm R y)
-mid3comm R (r y) = cong r (mid3comm R y)
-mid3comm R (eqL i) j = coherence-lem i (~ j)
-mid3comm R (eqC i) j = r (eqC (i ∧ ~ j))
-mid3comm R (eqR i) = refl
-mid3comm (l x) L = cong l (mid3comm x L)
-mid3comm (l x) R = cong m (mid3comm x R)
-mid3comm (l x) (l y) = cong l (mid3comm x y)
-mid3comm (l x) (r y) = cong m (mid3comm x y)
-mid3comm (l x) (eqL i) = cong l (mid3comm x L)
-mid3comm (l x) (eqC i) = {!!}
-mid3comm (l x) (eqR i) = cong m (mid3comm x R)
-mid3comm (r x) L = cong m (mid3comm x L)
-mid3comm (r x) R = cong r (mid3comm x R)
-mid3comm (r x) (l y) = cong m (mid3comm x y)
-mid3comm (r x) (r y) = cong r (mid3comm x y)
-mid3comm (r x) (eqL i) = cong m (mid3comm x L)
-mid3comm (r x) (eqC i) = {!!}
-mid3comm (r x) (eqR i) = cong r (mid3comm x R)
-mid3comm (eqL i) y = {!!}
-mid3comm (eqC i) y = {!!}
-mid3comm (eqR i) y = {!!}
--}
 
 \end{code}

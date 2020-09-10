@@ -267,3 +267,53 @@ mid3comm (eqR i) y = {!!}
 
 
 \end{code}
+
+Minimum and maximum for the natural ordering with L < M < R (which we
+haven't defined) and with l and r preserving ≤:
+
+\begin{code}
+
+mmax : 𝔹 → 𝔹 → 𝔹
+mmax L L = L
+mmax L R = R
+mmax L (l y) = l y
+mmax L (r y) = r y
+mmax L (eqL i) = eqL i
+mmax L (eqC i) = eqC i
+mmax L (eqR i) = eqR i
+mmax R L = R
+mmax R R = R
+mmax R (l y) = R
+mmax R (r y) = R
+mmax R (eqL i) = R
+mmax R (eqC i) = R
+mmax R (eqR i) = R
+mmax (l x) L = l x
+mmax (l x) R = R
+mmax (l x) (l y) = l (mmax x y)
+mmax (l x) (r y) = r y
+mmax (l L) (eqL i) = l L
+mmax (l R) (eqL i) = M
+mmax (l (l x)) (eqL i) = l (l x)
+mmax (l (r x)) (eqL i) = l (r x)
+mmax (l (eqL i)) (eqL j) = cong l eqL {!i ∨ j!}
+mmax (l (eqC i)) (eqL j) = {!!}
+mmax (l (eqR i)) (eqL j) = {!!}
+mmax (l L) (eqC i) = eqC i
+mmax (l R) (eqC i) = eqC i
+mmax (l (l x)) (eqC i) = eqC i
+mmax (l (r x)) (eqC i) = eqC i
+mmax (l (eqL i)) (eqC j) = eqC j
+mmax (l (eqC i)) (eqC j) = eqC j
+mmax (l (eqR i)) (eqC j) = eqC j
+mmax (l x) (eqR i) = eqR i
+mmax (r x) L = r x
+mmax (r x) R = R
+mmax (r x) (l y) = r x
+mmax (r x) (r y) = r (mmax x y)
+mmax (r x) (eqL i) = r x
+mmax (r x) (eqC i) = {!!}
+mmax (r x) (eqR i) = {!!}
+mmax (eqL i) y = {!mmax (eqL i) y!}
+mmax (eqC i) y = {!!}
+mmax (eqR i) y = {!!}
