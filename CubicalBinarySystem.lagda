@@ -16,7 +16,7 @@ and also in pure MLTT, and we show that, in cubical type theory, the
 two definitions give equivalent types.
 
 The main motivation for the investigation in this file is to know
-whether the initial binary system is a set, as intended, which is
+whether the initial binary system is a set, as in𝔹-prop ? ? ? ? ? ?which is
 indeed the case, as shown below, using the equivalence of the cubical
 and MLTT definitions of the initial binary system.
 
@@ -986,6 +986,23 @@ minv-L x = refl
 minv-R : (x : 𝔹) → minv (R ⊕ (R ⊕ x)) ≡ R
 minv-R x = refl
 
+
+mirror-⊕ : (x y : 𝔹) → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y
+mirror-⊕ = 𝔹-ind-prop (λ x → ∀ y → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y) (λ x → isPropΠ (λ y → 𝔹-is-set _ _))
+             (λ y → refl)
+             (λ y → refl)
+             (λ x f → 𝔹-ind-eq _ _
+                        (mirror (l x ⊕ L) ≡⟨ {!!} ⟩
+                        l (mirror {!x!}) ≡⟨ {!!} ⟩
+                        {!!} ≡⟨ {!!} ⟩
+                        {!!} ≡⟨ {!!} ⟩
+                        {!!} ≡⟨ {!!} ⟩
+                         mirror (l x) ⊕ mirror L ∎)
+                        {!!}
+                        {!!}
+                        {!!})
+             {!!}
+
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
 ⊕-idemp = 𝔹-ind-eq _ _
             eqL
@@ -1017,27 +1034,15 @@ minv-R x = refl
 
   f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
   f x h = 𝔹-ind-eq _ _
-           (l x ⊕ L   ≡⟨ refl ⟩
-            l (x ⊕ L) ≡⟨ cong l (h L) ⟩
-            l (L ⊕ x) ≡⟨ refl ⟩
-            L ⊕ l x   ∎)
-           (l x ⊕ R   ≡⟨ refl ⟩
-            m (x ⊕ R) ≡⟨ cong m (h R) ⟩
-            m (R ⊕ x) ≡⟨ refl ⟩
-            R ⊕ l x   ∎)
+           (cong l (h L))
+           (cong m (h R))
            (λ y _ → cong l (h y))
            (λ y _ → cong m (h y))
 
   g : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → r x ⊕ y ≡ y ⊕ r x
   g x h = 𝔹-ind-eq _ _
-           (r x ⊕ L   ≡⟨ refl ⟩
-            m (x ⊕ L) ≡⟨ cong m (h L) ⟩
-            m (L ⊕ x) ≡⟨ refl ⟩
-            L ⊕ r x   ∎)
-           (r x ⊕ R   ≡⟨ refl ⟩
-            r (x ⊕ R) ≡⟨ cong r (h R) ⟩
-            r (R ⊕ x) ≡⟨ refl ⟩
-            R ⊕ r x ∎)
+           (cong m (h L))
+           (cong r (h R))
            (λ y _ → cong m (h y))
            (λ y _ → cong r (h y))
 
