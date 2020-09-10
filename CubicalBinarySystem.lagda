@@ -506,9 +506,7 @@ module _ (f g : 𝔹 → 𝔹)
        where
 
  𝔹-ind-eq : (b : 𝔹) → f b ≡ g b
- 𝔹-ind-eq = 𝔹-ind-prop (λ b → f b ≡ g b)
-                        (λ b → 𝔹-is-set (f b) (g b))
-                        p q u v
+ 𝔹-ind-eq = 𝔹-ind-prop _ (λ b → 𝔹-is-set (f b) (g b)) p q u v
 
 module _ {ℓ  : Level}
          (P : 𝔹 → Type ℓ)
@@ -715,11 +713,7 @@ mirror : 𝔹 → 𝔹
 mirror = 𝔹-rec R L r l eqR (sym eqC) eqL
 
 mirror-involutive : (x : 𝔹) → mirror (mirror x) ≡ x
-mirror-involutive = 𝔹-ind-eq (mirror ∘ mirror) id
-                       refl
-                       refl
-                       (λ x → cong l)
-                       (λ y → cong r)
+mirror-involutive = 𝔹-ind-eq _ _ refl refl (λ x → cong l) (λ y → cong r)
 
 linv : 𝔹 → 𝔹
 linv = cases id (λ _ → R) refl
@@ -760,10 +754,7 @@ lr-common-image : {x y : 𝔹} → l x ≡ r y → (x ≡ R) × (y ≡ L)
 lr-common-image p = cong linv p , cong rinv (sym p)
 
 the-only-fixed-point-of-l-is-L : (x : 𝔹) → l x ≡ x → x ≡ L
-the-only-fixed-point-of-l-is-L = 𝔹-ind-prop
-                                   (λ x → l x ≡ x → x ≡ L )
-                                   (λ x → isPropΠ (λ _ → 𝔹-is-set _ _))
-                                   a b f g
+the-only-fixed-point-of-l-is-L = 𝔹-ind-prop _ (λ x → isPropΠ (λ _ → 𝔹-is-set _ _)) a b f g
  where
   a : l L ≡ L → L ≡ L
   a _ = refl
@@ -1047,50 +1038,28 @@ We now return to properties of midpoint:
 \begin{code}
 
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
-⊕-idemp = 𝔹-ind-eq _ _
-            eqL
-            eqR
-            (λ x → cong l)
-            (λ x → cong r)
+⊕-idemp = 𝔹-ind-eq _ _ eqL eqR (λ x → cong l) (λ x → cong r)
 
 ⊕-comm : (x y : 𝔹) → x ⊕ y ≡ y ⊕ x
-⊕-comm = 𝔹-ind-prop (λ x → ∀ y → x ⊕ y ≡ y ⊕ x)
-                     (λ x → isPropΠ (λ y → 𝔹-is-set (x ⊕ y) (y ⊕ x)))
-                     L-⊕-comm
-                     R-⊕-comm
-                     f
-                     g
+⊕-comm = 𝔹-ind-prop _ (λ x → isPropΠ (λ y → 𝔹-is-set (x ⊕ y) (y ⊕ x))) L-⊕-comm R-⊕-comm f g
  where
   L-⊕-comm : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
-  L-⊕-comm = 𝔹-ind-eq _ _
-              refl
-              eqC
-              (λ y → cong l)
-              (λ y → cong m)
+  L-⊕-comm = 𝔹-ind-eq _ _ refl eqC (λ y → cong l) (λ y → cong m)
 
   R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
-  R-⊕-comm = 𝔹-ind-eq _ _
-              (sym eqC)
-              refl
-              (λ y p → cong m p)
-              (λ y p → cong r p)
+  R-⊕-comm = 𝔹-ind-eq _ _ (sym eqC) refl (λ y p → cong m p) (λ y p → cong r p)
 
   f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
-  f x h = 𝔹-cases-eq _ _
-           (λ y → cong l (h y))
-           (λ y → cong m (h y))
+  f x h = 𝔹-cases-eq _ _ (λ y → cong l (h y)) (λ y → cong m (h y))
 
   g : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → r x ⊕ y ≡ y ⊕ r x
-  g x h = 𝔹-cases-eq _ _
-           (λ y → cong m (h y))
-           (λ y → cong r (h y))
+  g x h = 𝔹-cases-eq _ _ (λ y → cong m (h y)) (λ y → cong r (h y))
 
 mirror-m : (x : 𝔹) → mirror (m x) ≡ m (mirror x)
 mirror-m = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
 
 mirror-⊕ : (x y : 𝔹) → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y
-mirror-⊕ = 𝔹-ind-prop
-             (λ x → ∀ y → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y)
+mirror-⊕ = 𝔹-ind-prop _
              (λ x → isPropΠ (λ y → 𝔹-is-set _ _))
              (λ y → refl)
              (λ y → refl)
@@ -1109,9 +1078,7 @@ M-charac : M ≡ L ⊕ R
 M-charac = refl
 
 m-charac : m ∼ M ⊕_
-m-charac = 𝔹-cases-eq _ _
-             (λ x → refl)
-             (λ x → refl)
+m-charac = 𝔹-cases-eq _ _ (λ x → refl) (λ x → refl)
 
 \end{code}
 
