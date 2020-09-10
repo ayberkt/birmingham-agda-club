@@ -986,23 +986,6 @@ minv-L x = refl
 minv-R : (x : 𝔹) → minv (R ⊕ (R ⊕ x)) ≡ R
 minv-R x = refl
 
-
-mirror-⊕ : (x y : 𝔹) → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y
-mirror-⊕ = 𝔹-ind-prop (λ x → ∀ y → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y) (λ x → isPropΠ (λ y → 𝔹-is-set _ _))
-             (λ y → refl)
-             (λ y → refl)
-             (λ x f → 𝔹-ind-eq _ _
-                        (mirror (l x ⊕ L) ≡⟨ {!!} ⟩
-                        l (mirror {!x!}) ≡⟨ {!!} ⟩
-                        {!!} ≡⟨ {!!} ⟩
-                        {!!} ≡⟨ {!!} ⟩
-                        {!!} ≡⟨ {!!} ⟩
-                         mirror (l x) ⊕ mirror L ∎)
-                        {!!}
-                        {!!}
-                        {!!})
-             {!!}
-
 ⊕-idemp : (x : 𝔹) → x ≡ x ⊕ x
 ⊕-idemp = 𝔹-ind-eq _ _
             eqL
@@ -1045,6 +1028,24 @@ mirror-⊕ = 𝔹-ind-prop (λ x → ∀ y → mirror (x ⊕ y) ≡ mirror x ⊕
            (cong r (h R))
            (λ y _ → cong m (h y))
            (λ y _ → cong r (h y))
+
+mirror-m : (x : 𝔹) → mirror (m x) ≡ m (mirror x)
+mirror-m = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
+
+mirror-⊕ : (x y : 𝔹) → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y
+mirror-⊕ = 𝔹-ind-prop (λ x → ∀ y → mirror (x ⊕ y) ≡ mirror x ⊕ mirror y) (λ x → isPropΠ (λ y → 𝔹-is-set _ _))
+             (λ y → refl)
+             (λ y → refl)
+             (λ x f → 𝔹-cases-eq _ _
+                        (λ y → cong r (f y))
+                        (λ y → mirror (l x ⊕ r y)          ≡⟨ mirror-m (x ⊕ y) ⟩
+                               m (mirror (x ⊕ y))          ≡⟨ cong m (f y) ⟩
+                               mirror (l x) ⊕ mirror (r y) ∎))
+             (λ x f → 𝔹-cases-eq _ _
+                        (λ y → mirror (r x ⊕ l y)          ≡⟨ mirror-m (x ⊕ y) ⟩
+                               m (mirror (x ⊕ y))          ≡⟨ cong m (f y) ⟩
+                               mirror (r x) ⊕ mirror (l y) ∎)
+                        (λ y → cong l (f y)))
 
 M-charac : M ≡ L ⊕ R
 M-charac = refl
