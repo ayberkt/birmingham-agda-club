@@ -16,9 +16,9 @@ and also in pure MLTT, and we show that, in cubical type theory, the
 two definitions give equivalent types.
 
 The main motivation for the investigation in this file is to know
-whether the initial binary system is a set, as in𝔹-prop ? ? ? ? ? ?which is
-indeed the case, as shown below, using the equivalence of the cubical
-and MLTT definitions of the initial binary system.
+whether the initial binary system is a set, which is indeed the case,
+as shown below, using the equivalence of the cubical and MLTT
+definitions of the initial binary system.
 
 \begin{code}
 
@@ -47,6 +47,9 @@ Our preamble:
 variable
  ℓ ℓ' ℓ₀ ℓ₁ ℓ₂ : Level
 
+𝑟𝒆𝑓𝑙 : {X : Type ℓ} (x : X) → x ≡ x
+𝑟𝒆𝑓𝑙 x = refl
+
 id : {X : Type ℓ} → X → X
 id = idfun _
 
@@ -65,7 +68,14 @@ f ∼ g = ∀ x → f x ≡ g x
 
 infix  4  _∼_
 
+isoFunInjective : {A : Type ℓ} {B : Type ℓ'} (f : Iso A B) → (x y : A)
+                → Iso.fun f x ≡ Iso.fun f y → x ≡ y
+isoFunInjective f x y h = sym (Iso.leftInv f x) ∙∙ cong (Iso.inv f) h ∙∙ Iso.leftInv f y
+
 \end{code}
+
+The last function above is in the development version of the cubical
+library in Foundations/Isomorphism.
 
 The initial binary system as a HIT:
 
@@ -75,21 +85,30 @@ data 𝔹 : Type₀ where
   L R : 𝔹
   l r : 𝔹 → 𝔹
   eqL : L   ≡ l L
-  eqC : l R ≡ r L
+  eqM : l R ≡ r L
   eqR : R   ≡ r R
+
+\end{code}
+
+We call M the common point of the image of l and r (for middle):
+
+\begin{code}
+
+M : 𝔹
+M = l R
 
 \end{code}
 
 And now the initial binary system defined in pure MLTT.
 
-We first define an auxiliary data type 𝔻, where center is supposed to
+We first define an auxiliary data type 𝔻, where middle is supposed to
 be the common point in the images of l and r given by the
-identification eqC:
+identification eqM:
 
 \begin{code}
 
 data 𝔻 :  Type₀ where
- center : 𝔻
+ middle : 𝔻
  left   : 𝔻 → 𝔻
  right  : 𝔻 → 𝔻
 
@@ -114,15 +133,28 @@ corresponding to the constructors l and r of 𝔹:
 
 l' : 𝔹' → 𝔹'
 l' L'    = L'
-l' R'    = η center
+l' R'    = η middle
 l' (η x) = η (left x)
 
 r' : 𝔹' → 𝔹'
-r' L'    = η center
+r' L'    = η middle
 r' R'    = R'
 r' (η x) = η (right x)
 
 \end{code}
+
+Diagrammatically,
+
+             l'
+   𝔹' ----------------> 𝔹'
+   |                     |
+ η |                     | η
+   |                     |
+   v                     v
+   𝔻  ----------------> 𝔻
+             left
+
+and similarly for r and left.
 
 As opposed to the HIT construction, the binary system equations hold
 definitionally in our MLTT construction (but then other things that
@@ -132,11 +164,11 @@ MLTT construction):
 \begin{code}
 
 eqL' : L'    ≡ l' L'
-eqC' : l' R' ≡ r' L'
+eqM' : l' R' ≡ r' L'
 eqR' : R'    ≡ r' R'
 
 eqL' = refl
-eqC' = refl
+eqM' = refl
 eqR' = refl
 
 \end{code}
@@ -146,7 +178,7 @@ We also have:
 \begin{code}
 
 eql' : (i : I) → L'    ≡ eqL' i
-eqc' : (i : I) → l' R' ≡ eqC' i
+eqc' : (i : I) → l' R' ≡ eqM' i
 eqr' : (i : I) → R'    ≡ eqR' i
 
 eql' i = refl
@@ -156,7 +188,7 @@ eqr' i = refl
 \end{code}
 
 Notice that, by construction, the common point in the images of the
-functions l' and r' is η center.
+functions l' and r' is η middle.
 
 The equivalence of the two constructions is given by the following
 pair of mutually inverse maps φ and γ:
@@ -169,13 +201,13 @@ pair of mutually inverse maps φ and γ:
 φ (l x)   = l' (φ x)
 φ (r x)   = r' (φ x)
 φ (eqL i) = eqL' i
-φ (eqC i) = eqC' i
+φ (eqM i) = eqM' i
 φ (eqR i) = eqR' i
 
 γ : 𝔹' → 𝔹
 γ L'            = L
 γ R'            = R
-γ (η center)    = l R
+γ (η middle)    = M
 γ (η (left y))  = l (γ (η y))
 γ (η (right y)) = r (γ (η y))
 
@@ -191,7 +223,7 @@ That φ is a left inverse of γ is easy, by induction on 𝔹' and 𝔻:
 φγ (η y) = δ y
  where
   δ : (y : 𝔻) → φ (γ (η y)) ≡ η y
-  δ center    = refl
+  δ middle    = refl
   δ (left y)  = cong l' (δ y)
   δ (right y) = cong r' (δ y)
 
@@ -208,21 +240,35 @@ square-l R'    = refl
 square-l (η x) = refl
 
 square-r : (y : 𝔹') → γ (r' y) ≡ r (γ y)
-square-r L'    = eqC
+square-r L'    = eqM
 square-r R'    = eqR
 square-r (η x) = refl
 
 \end{code}
 
+Diagrammatically,
+
+             l'
+   𝔹' ----------------> 𝔹'
+   |                     |
+ γ |                     | γ
+   |                     |
+   v                     v
+   𝔹  ----------------> 𝔹
+             l
+
+and similarly for r.
+
+
 Given this, the only difficulty of the following proof is in the case
-for the path constructors eqL, eqC and eqR, for which hcomp is used:
+for the path constructors eqL, eqM and eqR, for which hcomp is used:
 
 \begin{code}
 
 path-construction : {X : Type ℓ}
                     (x y : X)
                     (p : x ≡ y)
-                  → PathP (λ i → x ≡ p i) (refl ∙ refl) (p ∙ refl)
+                  → PathP (λ i → x ≡ p i) (𝑟𝒆𝑓𝑙 x ∙ 𝑟𝒆𝑓𝑙 x) (p ∙ 𝑟𝒆𝑓𝑙 y)
 path-construction x y p i j = hcomp (λ k → λ { (j = i0) → x
                                              ; (j = i1) → p i })
                                     (p (i ∧ j))
@@ -231,7 +277,7 @@ fixed-point-construction : {X : Type ℓ}
                            (x : X)
                            (f : X → X)
                            (p : x ≡ f x)
-                         → PathP (λ i → x ≡ p i) refl (p ∙ refl)
+                         → PathP (λ i → x ≡ p i) (𝑟𝒆𝑓𝑙 x) (p ∙ 𝑟𝒆𝑓𝑙 (f x))
 fixed-point-construction x f p i j = hcomp (λ k → λ { (i = i0) → x
                                                     ; (j = i0) → x
                                                     ; (j = i1) → p i })
@@ -243,13 +289,13 @@ paths, which in turn are used to construct γϕ below:
 
 \begin{code}
 
-eql : PathP (λ i → L   ≡ eqL i) refl          (eqL ∙ refl)
-eqc : PathP (λ i → l R ≡ eqC i) (refl ∙ refl) (eqC ∙ refl)
-eqr : PathP (λ i → R   ≡ eqR i) refl          (eqR ∙ refl)
+eql : PathP (λ i → L ≡ eqL i) refl          (eqL ∙ refl)
+eqc : PathP (λ i → M ≡ eqM i) (refl ∙ refl) (eqM ∙ refl)
+eqr : PathP (λ i → R ≡ eqR i) refl          (eqR ∙ refl)
 
-eql = fixed-point-construction L l eqL
-eqc = path-construction (l R) (r L) eqC
-eqr = fixed-point-construction R r eqR
+eql = fixed-point-construction L l     eqL
+eqc = path-construction        M (r L) eqM
+eqr = fixed-point-construction R r     eqR
 
 γφ : (x : 𝔹) → γ (φ x) ≡ x
 γφ L       = refl
@@ -257,7 +303,7 @@ eqr = fixed-point-construction R r eqR
 γφ (l x)   = square-l (φ x) ∙ cong l (γφ x)
 γφ (r x)   = square-r (φ x) ∙ cong r (γφ x)
 γφ (eqL i) = eql i
-γφ (eqC i) = eqc i
+γφ (eqM i) = eqc i
 γφ (eqR i) = eqr i
 
 \end{code}
@@ -282,7 +328,7 @@ extensionality axioms), without invoking the cubical machinery.
 
 Notice that a binary system homomorphism, in this ∞-setting, is a
 function that commutes not only with L, R, l, r, but also with eqL,
-eqC and eqR.
+eqM and eqR.
 
 We now prove that 𝔹 is a set as explained above.
 
@@ -290,13 +336,13 @@ We now prove that 𝔹 is a set as explained above.
 
 private
  cancellr : 𝔻 → 𝔻
- cancellr center    = center -- arbitrary choice
+ cancellr middle    = middle -- arbitrary choice
  cancellr (left x)  = x
  cancellr (right x) = x
 
  cancelη : 𝔹' → 𝔻
- cancelη L'    = center -- arbitrary choice
- cancelη R'    = center -- arbitrary choice
+ cancelη L'    = middle -- arbitrary choice
+ cancelη R'    = middle -- arbitrary choice
  cancelη (η x) = x
 
 left-lc : {x y : 𝔻} → left x ≡ left y → x ≡ y
@@ -306,32 +352,32 @@ right-lc : {x y : 𝔻} → right x ≡ right y → x ≡ y
 right-lc = cong cancellr
 
 isLeft : 𝔻 → Type₀
-isLeft center    = 𝟘
+isLeft middle    = 𝟘
 isLeft (left x)  = 𝟙
 isLeft (right x) = 𝟘
 
-isCenter : 𝔻 → Type₀
-isCenter center    = 𝟙
-isCenter (left x)  = 𝟘
-isCenter (right x) = 𝟘
+isMiddle : 𝔻 → Type₀
+isMiddle middle    = 𝟙
+isMiddle (left x)  = 𝟘
+isMiddle (right x) = 𝟘
 
 left-is-not-right : {x y : 𝔻} → ¬ left x ≡ right y
 left-is-not-right p = transport (cong isLeft p) *
 
-center-is-not-left : {x : 𝔻} → ¬ center ≡ left x
-center-is-not-left p = transport (cong isCenter p) *
+middle-is-not-left : {x : 𝔻} → ¬ middle ≡ left x
+middle-is-not-left p = transport (cong isMiddle p) *
 
-center-is-not-right : {x : 𝔻} → ¬ center ≡ right x
-center-is-not-right p = transport (cong isCenter p) *
+middle-is-not-right : {x : 𝔻} → ¬ middle ≡ right x
+middle-is-not-right p = transport (cong isMiddle p) *
 
 𝔻-is-discrete : Discrete 𝔻
-𝔻-is-discrete center    center    = yes refl
-𝔻-is-discrete center    (left y)  = no center-is-not-left
-𝔻-is-discrete center    (right y) = no center-is-not-right
-𝔻-is-discrete (left x)  center    = no (center-is-not-left ∘ sym)
+𝔻-is-discrete middle    middle    = yes refl
+𝔻-is-discrete middle    (left y)  = no middle-is-not-left
+𝔻-is-discrete middle    (right y) = no middle-is-not-right
+𝔻-is-discrete (left x)  middle    = no (middle-is-not-left ∘ sym)
 𝔻-is-discrete (left x)  (left y)  = mapDec (cong left) (λ ν p → ν (left-lc p)) (𝔻-is-discrete x y)
 𝔻-is-discrete (left x)  (right y) = no left-is-not-right
-𝔻-is-discrete (right x) center    = no (center-is-not-right ∘ sym)
+𝔻-is-discrete (right x) middle    = no (middle-is-not-right ∘ sym)
 𝔻-is-discrete (right x) (left y)  = no (left-is-not-right ∘ sym)
 𝔻-is-discrete (right x) (right y) = mapDec (cong right) (λ ν p → ν (right-lc p)) (𝔻-is-discrete x y)
 
@@ -377,7 +423,20 @@ L'-is-not-η p = transport (cong is-L' p) *
 𝔹-is-set : isSet 𝔹
 𝔹-is-set = isOfHLevelRespectEquiv 2 𝔹'-is-equiv-to-𝔹 𝔹'-is-set
 
+𝔹-is-discrete : Discrete 𝔹
+𝔹-is-discrete x y = d
+ where
+  d' : Dec (φ x ≡ φ y)
+  d' = 𝔹'-is-discrete (φ x) (φ y)
+
+  d : Dec (x ≡ y)
+  d = mapDec (isoFunInjective (iso φ γ φγ γφ) x y) (λ f p → f (cong φ p)) d'
+
 \end{code}
+
+An attempt to prove directly that 𝔹 is discrete by pattern matching
+generates 49 cases, of which 16 involve point constructors L, R, l, r,
+and the remaining 33 involve the path constructors eqL, eqM and eqR.
 
 We now consider recursion and then, more generally, induction.  For
 both conceptual and practical reasons, we consider various forms of
@@ -400,13 +459,13 @@ module _  {ℓ    : Level}
  𝔹-rec (l b)   = f (𝔹-rec b)
  𝔹-rec (r b)   = g (𝔹-rec b)
  𝔹-rec (eqL i) = eqf i
- 𝔹-rec (eqC i) = eqfg i
+ 𝔹-rec (eqM i) = eqfg i
  𝔹-rec (eqR i) = eqg i
 
  𝔹'-rec : 𝔹' → X
  𝔹'-rec L'            = x
  𝔹'-rec R'            = y
- 𝔹'-rec (η center)    = f y -- Or g x, but then we need to adapt the definitions below.
+ 𝔹'-rec (η middle)    = f y -- Or g x, but then we need to adapt the definitions below.
  𝔹'-rec (η (left x))  = f (𝔹'-rec (η x))
  𝔹'-rec (η (right x)) = g (𝔹'-rec (η x))
 
@@ -420,7 +479,7 @@ The desired equations for 𝔹'-rec hold, but not definitionally:
  𝔹'-rec-r : (x : 𝔹') → 𝔹'-rec (r' x) ≡ g (𝔹'-rec x)
 
  𝔹'-rec-L : ∀ i → 𝔹'-rec (eqL' i) ≡ eqf i
- 𝔹'-rec-C : ∀ i → 𝔹'-rec (eqC' i) ≡ eqfg i
+ 𝔹'-rec-M : ∀ i → 𝔹'-rec (eqM' i) ≡ eqfg i
  𝔹'-rec-R : ∀ i → 𝔹'-rec (eqR' i) ≡ eqg i
 
  𝔹'-rec-l L'    = eqf
@@ -432,7 +491,7 @@ The desired equations for 𝔹'-rec hold, but not definitionally:
  𝔹'-rec-r (η x) = refl
 
  𝔹'-rec-L i = fixed-point-construction x f eqf i
- 𝔹'-rec-C i = path-construction (f y) (g x) eqfg i
+ 𝔹'-rec-M i = path-construction (f y) (g x) eqfg i
  𝔹'-rec-R i = fixed-point-construction y g eqg i
 
 \end{code}
@@ -448,7 +507,7 @@ module _ {ℓ    : Level}
          (f    : (b : 𝔹) → P b → P (l b))
          (g    : (b : 𝔹) → P b → P (r b))
          (eqf  : PathP (λ i → P (eqL i)) x (f L x))        -- Cubical-style
-         (eqfg : PathP (λ i → P (eqC i)) (f R y) (g L x))  -- formulation.
+         (eqfg : PathP (λ i → P (eqM i)) (f R y) (g L x))  -- formulation.
          (eqg  : PathP (λ i → P (eqR i)) y (g R y))        --
        where
 
@@ -458,7 +517,7 @@ module _ {ℓ    : Level}
  𝔹-ind (l b)   = f b (𝔹-ind b)
  𝔹-ind (r b)   = g b (𝔹-ind b)
  𝔹-ind (eqL i) = eqf i
- 𝔹-ind (eqC i) = eqfg i
+ 𝔹-ind (eqM i) = eqfg i
  𝔹-ind (eqR i) = eqg i
 
 module _ {ℓ    : Level}
@@ -468,13 +527,13 @@ module _ {ℓ    : Level}
          (f    : (b : 𝔹) → P b → P (l b))
          (g    : (b : 𝔹) → P b → P (r b))
          (eqf  : subst P eqL x       ≡ f L x) -- HoTT/UF style
-         (eqfg : subst P eqC (f R y) ≡ g L x) -- fomulation.
+         (eqfg : subst P eqM (f R y) ≡ g L x) -- fomulation.
          (eqg  : subst P eqR y       ≡ g R y) --
        where
 
  𝔹-ind' : (b : 𝔹) → P b
  𝔹-ind' = 𝔹-ind P x y f g (λ i → toPathP {A = λ j → P (eqL j)} eqf i)
-                           (λ i → toPathP {A = λ j → P (eqC j)} eqfg i)
+                           (λ i → toPathP {A = λ j → P (eqM j)} eqfg i)
                            (λ i → toPathP {A = λ j → P (eqR j)} eqg i)
 
 \end{code}
@@ -495,7 +554,7 @@ module _ {ℓ  : Level}
 
  𝔹-ind-prop : (b : 𝔹) → P b
  𝔹-ind-prop = 𝔹-ind' P x y f g (p (l L) (subst P eqL x) (f L x))
-                                (p (r L) (subst P eqC (f R y)) (g L x))
+                                (p (r L) (subst P eqM (f R y)) (g L x))
                                 (p (r R) (subst P eqR y) (g R y))
 
 module _ (f g : 𝔹 → 𝔹)
@@ -562,7 +621,7 @@ module _ {ℓ    : Level}
  𝔹'-ind : (b : 𝔹') → P b
  𝔹'-ind L'            = x
  𝔹'-ind R'            = y
- 𝔹'-ind (η center)    = f R' y
+ 𝔹'-ind (η middle)    = f R' y
  𝔹'-ind (η (left x))  = f (η x) (𝔹'-ind (η x))
  𝔹'-ind (η (right x)) = g (η x) (𝔹'-ind (η x))
 
@@ -576,7 +635,7 @@ This satisfies the following equations, but not definitionally:
  𝔹'-ind-r : (b : 𝔹') → 𝔹'-ind (r' b) ≡ g b (𝔹'-ind b)
 
  𝔹'-ind-L : ∀ i → 𝔹'-ind (eqL' i) ≡ eqf i
- 𝔹'-ind-C : ∀ i → 𝔹'-ind (eqC' i) ≡ eqfg i
+ 𝔹'-ind-M : ∀ i → 𝔹'-ind (eqM' i) ≡ eqfg i
  𝔹'-ind-R : ∀ i → 𝔹'-ind (eqR' i) ≡ eqg i
 
 \end{code}
@@ -594,7 +653,7 @@ With the following proofs:
  𝔹'-ind-r (η x) = refl
 
  𝔹'-ind-L i = fixed-point-construction x (f L') eqf i
- 𝔹'-ind-C i = path-construction (f R' y) (g L' x) eqfg i
+ 𝔹'-ind-M i = path-construction (f R' y) (g L' x) eqfg i
  𝔹'-ind-R i = fixed-point-construction y (g R') eqg i
 
 \end{code}
@@ -613,7 +672,7 @@ cases f g p R       = g R
 cases f g p (l b)   = f b
 cases f g p (r b)   = g b
 cases f g p (eqL i) = f L
-cases f g p (eqC i) = p i
+cases f g p (eqM i) = p i
 cases f g p (eqR i) = g R
 
 \end{code}
@@ -629,7 +688,7 @@ NB-cases f g p R       = refl
 NB-cases f g p (l b)   = refl
 NB-cases f g p (r b)   = refl
 NB-cases f g p (eqL i) = λ _ → f L
-NB-cases f g p (eqC i) = λ _ → p i
+NB-cases f g p (eqM i) = λ _ → p i
 NB-cases f g p (eqR i) = λ _ → g R
 
 \end{code}
@@ -659,7 +718,7 @@ compatible-higher : {X : Type ℓ}
                     (u : h ∘ l ∼ f)
                     (v : h ∘ r ∼ g)
                   → Type ℓ
-compatible-higher f g p h u v = Square (u R) (v L) (cong h eqC) p
+compatible-higher f g p h u v = Square (u R) (v L) (cong h eqM) p
 
 \end{code}
 
@@ -680,7 +739,7 @@ cases-uniqueness f g p h u v c R       = cong h eqR ∙ v R
 cases-uniqueness f g p h u v c (l x)   = u x
 cases-uniqueness f g p h u v c (r x)   = v x
 cases-uniqueness f g p h u v c (eqL i) = path-lemma h eqL (u L) i
-cases-uniqueness f g p h u v c (eqC i) = c i
+cases-uniqueness f g p h u v c (eqM i) = c i
 cases-uniqueness f g p h u v c (eqR i) = path-lemma h eqR (v R) i
 
 \end{code}
@@ -700,8 +759,8 @@ cases-uniqueness-set : {X : Type ℓ}
                      → h ∼ cases f g p
 cases-uniqueness-set f g p h u v isSetX = cases-uniqueness f g p h u v c
   where
-   c : Square (u R) (v L) (λ i → h (eqC i)) p
-   c = isSet→isSet' isSetX (u R) (v L) (cong h eqC) p
+   c : Square (u R) (v L) (λ i → h (eqM i)) p
+   c = isSet→isSet' isSetX (u R) (v L) (cong h eqM) p
 
 \end{code}
 
@@ -710,7 +769,14 @@ We now prove some fundamental properties of 𝔹.
 \begin{code}
 
 mirror : 𝔹 → 𝔹
-mirror = 𝔹-rec R L r l eqR (sym eqC) eqL
+mirror = 𝔹-rec R L r l eqR (sym eqM) eqL
+
+mirror-defining-equations :
+       (mirror   L ≡ R)
+     × (mirror   R ≡ L)
+     × (mirror ∘ l ≡ r ∘ mirror)
+     × (mirror ∘ r ≡ l ∘ mirror)
+mirror-defining-equations = refl , refl , refl , refl
 
 mirror-involutive : (x : 𝔹) → mirror (mirror x) ≡ x
 mirror-involutive = 𝔹-ind-eq _ _ refl refl (λ x → cong l) (λ y → cong r)
@@ -741,14 +807,18 @@ l-lc = cong linv
 r-lc : {x y : 𝔹} → r x ≡ r y → x ≡ y
 r-lc = cong rinv
 
-M : 𝔹
-M = l R
+the-only-point-mapped-to-L-by-l-is-L : {x : 𝔹} → l x ≡ L → x ≡ L
+the-only-point-mapped-to-L-by-l-is-L = cong linv
+
+the-only-point-mapped-to-R-by-r-is-R : {x : 𝔹} → r x ≡ R → x ≡ R
+the-only-point-mapped-to-R-by-r-is-R = cong rinv
+
 
 the-only-point-mapped-to-M-by-l-is-R : {x : 𝔹} → l x ≡ M → x ≡ R
 the-only-point-mapped-to-M-by-l-is-R = l-lc
 
 the-only-point-mapped-to-M-by-r-is-L : {x : 𝔹} → r x ≡ M → x ≡ L
-the-only-point-mapped-to-M-by-r-is-L p = r-lc (p ∙ eqC)
+the-only-point-mapped-to-M-by-r-is-L p = r-lc (p ∙ eqM)
 
 lr-common-image : {x y : 𝔹} → l x ≡ r y → (x ≡ R) × (y ≡ L)
 lr-common-image p = cong linv p , cong rinv (sym p)
@@ -834,7 +904,7 @@ function _⊕_ : 𝔹 → 𝔹 → B, which is our desired midpoint operation.
 \begin{code}
 
 m-compatibility : l (r R) ≡ r (l L)
-m-compatibility = cong l (sym eqR) ∙∙ eqC ∙∙ cong r eqL
+m-compatibility = cong l (sym eqR) ∙∙ eqM ∙∙ cong r eqL
 
 m : 𝔹 → 𝔹
 m = cases (l ∘ r) (r ∘ l) m-compatibility
@@ -845,11 +915,11 @@ m-defining-equations : (m L   ≡ l (r L))
                      × (m ∘ r ≡ r ∘ l)
 m-defining-equations = refl , refl , refl , refl
 
-l-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqC)
-l-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqC) l (λ x → refl) (λ x → refl) (λ i → refl)
+l-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqM)
+l-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqM) l (λ x → refl) (λ x → refl) (λ i → refl)
 
-r-by-cases : r ∼ cases (m ∘ r) (r ∘ r) (cong r eqC)
-r-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqC) r (λ x → refl) (λ x → refl) (λ i → refl)
+r-by-cases : r ∼ cases (m ∘ r) (r ∘ r) (cong r eqM)
+r-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqM) r (λ x → refl) (λ x → refl) (λ i → refl)
 
 is-𝓛-function : (𝔹 → 𝔹) → Type₀
 is-𝓛-function f = compatible (l ∘ f) (m ∘ f)
@@ -885,8 +955,8 @@ F : Type₀
 F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 
 𝐿 𝑅 : F
-𝐿 = l , cong l eqC , m-compatibility
-𝑅 = r , m-compatibility , cong r eqC
+𝐿 = l , cong l eqM , m-compatibility
+𝑅 = r , m-compatibility , cong r eqM
 
 𝑙 𝑟 : F → F
 𝑙 (f , a , b) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
@@ -895,7 +965,7 @@ F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 eq𝐿 : 𝐿 ≡ 𝑙 𝐿
 eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
  where
-  a : l ∼ 𝓛 l (cong l eqC)
+  a : l ∼ 𝓛 l (cong l eqM)
   a = l-by-cases
 
 eq𝐶 : 𝑙 𝑅 ≡ 𝑟 𝐿
@@ -908,7 +978,7 @@ eq𝐶 = ΣProp≡ being-𝓛𝓡-function-is-prop a
 eq𝑅 : 𝑅 ≡ 𝑟 𝑅
 eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
  where
-  a : r ∼ 𝓡 r (cong r eqC)
+  a : r ∼ 𝓡 r (cong r eqM)
   a = r-by-cases
 
 \end{code}
@@ -964,7 +1034,7 @@ minv : 𝔹 → 𝔹
 minv = cases
         (cases (λ _ → L) l eqL)
         (cases r (λ _ → R) (sym eqR))
-        eqC
+        eqM
 
 minv-defining-equations :
      (minv L ≡ L)
@@ -1007,8 +1077,8 @@ The function minv satisfies the ES-axioms for a double function:
 
 \begin{code}
 
-minv-C : (x : 𝔹) → minv ((L ⊕ R) ⊕ x) ≡ x
-minv-C = 𝔹-cases-eq _ _ (λ x → refl) (λ x → refl)
+minv-M : (x : 𝔹) → minv ((L ⊕ R) ⊕ x) ≡ x
+minv-M = 𝔹-cases-eq _ _ (λ x → refl) (λ x → refl)
 
 minv-L : (x : 𝔹) → minv (L ⊕ (L ⊕ x)) ≡ L
 minv-L x = refl
@@ -1044,10 +1114,10 @@ We now return to properties of midpoint:
 ⊕-comm = 𝔹-ind-prop _ (λ x → isPropΠ (λ y → 𝔹-is-set (x ⊕ y) (y ⊕ x))) L-⊕-comm R-⊕-comm f g
  where
   L-⊕-comm : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
-  L-⊕-comm = 𝔹-ind-eq _ _ refl eqC (λ y → cong l) (λ y → cong m)
+  L-⊕-comm = 𝔹-ind-eq _ _ refl eqM (λ y → cong l) (λ y → cong m)
 
   R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
-  R-⊕-comm = 𝔹-ind-eq _ _ (sym eqC) refl (λ y p → cong m p) (λ y p → cong r p)
+  R-⊕-comm = 𝔹-ind-eq _ _ (sym eqM) refl (λ y p → cong m p) (λ y p → cong r p)
 
   f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
   f x h = 𝔹-cases-eq _ _ (λ y → cong l (h y)) (λ y → cong m (h y))
@@ -1088,7 +1158,7 @@ in favour of L ⊕_ and R ⊕_.
 \begin{code}
 
 mirror-M : M ≡ mirror M
-mirror-M = eqC
+mirror-M = eqM
 
 LM-lemma : (x : 𝔹) → (L ⊕ M) ⊕ (M ⊕ x) ≡ L ⊕ (R ⊕ x)
 LM-lemma = 𝔹-cases-eq _ _ (λ b → refl) (λ b → refl)
@@ -1130,8 +1200,8 @@ A second approach to define midpoint:
 
 \begin{code}
 
-coherence-lem : Square eqC (cong m eqC) (cong l eqR) (cong r eqL)
-coherence-lem = doubleCompPath-filler (cong l (sym eqR)) eqC (cong r eqL)
+coherence-lem : Square eqM (cong m eqM) (cong l eqR) (cong r eqL)
+coherence-lem = doubleCompPath-filler (cong l (sym eqR)) eqM (cong r eqL)
 
 mid2 : 𝔹 → 𝔹 → 𝔹
 mid2L : ∀ x → l x ≡ mid2 x L
@@ -1144,59 +1214,59 @@ mid2 (l x) R = r (l x)
 mid2 (l x) (l y) = l (mid2 x y)
 mid2 (l x) (r y) = m (mid2 x y)
 mid2 (l x) (eqL i) = l (mid2L x i)
-mid2 (l x) (eqC i) = (cong l (sym (mid2R x)) ∙ cong m (mid2L x)) i
+mid2 (l x) (eqM i) = (cong l (sym (mid2R x)) ∙ cong m (mid2L x)) i
 mid2 (l x) (eqR i) = m (mid2R x i)
 mid2 (r x) L = l (r x)
 mid2 (r x) R = r (r x)
 mid2 (r x) (l y) = m (mid2 x y)
 mid2 (r x) (r y) = r (mid2 x y)
 mid2 (r x) (eqL i) = m (mid2L x i)
-mid2 (r x) (eqC i) = (cong m (sym (mid2R x)) ∙ cong r (mid2L x)) i
+mid2 (r x) (eqM i) = (cong m (sym (mid2R x)) ∙ cong r (mid2L x)) i
 mid2 (r x) (eqR i) = r (mid2R x i)
 mid2 (eqL i) L = l (eqL i)
-mid2 (eqL i) R = (eqC ∙ cong r eqL) i
+mid2 (eqL i) R = (eqM ∙ cong r eqL) i
 mid2 (eqL i) (l y) = l (l y)
 mid2 (eqL i) (r y) = l (r y)
 mid2 (eqL i) (eqL j) = l (eqL (i ∨ j))
-mid2 (eqL i) (eqC j) = rUnit (cong l eqC) i j
+mid2 (eqL i) (eqM j) = rUnit (cong l eqM) i j
 mid2 (eqL i) (eqR j) = hcomp (λ k → λ { (i = i0) → l (eqR (j ∧ k))
                                       ; (i = i1) → coherence-lem k (~ j)
                                       ; (j = i1) → l (eqR k)})
-                             (eqC (i ∧ ~ j))
-mid2 (eqC i) L = l (eqC i)
-mid2 (eqC i) R = r (eqC i)
-mid2 (eqC i) (l y) = l (r y)
-mid2 (eqC i) (r y) = r (l y)
-mid2 (eqC i) (eqL j) = l (eqC (i ∨ j))
-mid2 (eqC i) (eqC j) = hcomp (λ k → λ { (j = i0) → l (r R)
-                                      ; (j = i1) → m (eqC (i ∨ k))})
-                             (m (eqC (i ∧ j)))
-mid2 (eqC i) (eqR j) = r (eqC (i ∧ ~ j ))
-mid2 (eqR i) L = (sym eqC ∙ cong l eqR) i
+                             (eqM (i ∧ ~ j))
+mid2 (eqM i) L = l (eqM i)
+mid2 (eqM i) R = r (eqM i)
+mid2 (eqM i) (l y) = l (r y)
+mid2 (eqM i) (r y) = r (l y)
+mid2 (eqM i) (eqL j) = l (eqM (i ∨ j))
+mid2 (eqM i) (eqM j) = hcomp (λ k → λ { (j = i0) → l (r R)
+                                      ; (j = i1) → m (eqM (i ∨ k))})
+                             (m (eqM (i ∧ j)))
+mid2 (eqM i) (eqR j) = r (eqM (i ∧ ~ j ))
+mid2 (eqR i) L = (sym eqM ∙ cong l eqR) i
 mid2 (eqR i) R = r (eqR i)
 mid2 (eqR i) (l y) = r (l y)
 mid2 (eqR i) (r y) = r (r y)
 mid2 (eqR i) (eqL j) = hcomp (λ k → λ { (i = i0) → r (eqL (j ∧ k))
                                       ; (i = i1) → coherence-lem k j
                                       ; (j = i1) → r (eqL k)})
-                             (eqC (~ i ∨ j))
-mid2 (eqR i) (eqC j) = lUnit (cong r eqC) i j
+                             (eqM (~ i ∨ j))
+mid2 (eqR i) (eqM j) = lUnit (cong r eqM) i j
 mid2 (eqR i) (eqR j) = r (eqR (i ∨ j))
 
 mid2L L = refl
-mid2L R = eqC
+mid2L R = eqM
 mid2L (l x) = refl
 mid2L (r x) = refl
 mid2L (eqL i) = refl
-mid2L (eqC i) = refl
-mid2L (eqR i) = isSet→isSet' 𝔹-is-set eqC (λ _ → l (r R)) (cong l eqR) (sym eqC ∙ cong l eqR) i
+mid2L (eqM i) = refl
+mid2L (eqR i) = isSet→isSet' 𝔹-is-set eqM (λ _ → l (r R)) (cong l eqR) (sym eqM ∙ cong l eqR) i
 
-mid2R L = sym eqC
+mid2R L = sym eqM
 mid2R R = refl
 mid2R (l x) = refl
 mid2R (r x) = refl
-mid2R (eqL i) = isSet→isSet' 𝔹-is-set (sym eqC) (λ _ → r (l L)) (cong r eqL) (eqC ∙ cong r eqL) i
-mid2R (eqC i) = refl
+mid2R (eqL i) = isSet→isSet' 𝔹-is-set (sym eqM) (λ _ → r (l L)) (cong r eqL) (eqM ∙ cong r eqL) i
+mid2R (eqM i) = refl
 mid2R (eqR i) = refl
 
 \end{code}
@@ -1217,52 +1287,52 @@ mid3 (l x) R = m (mid3 x R)
 mid3 (l x) (l y) = l (mid3 x y)
 mid3 (l x) (r y) = m (mid3 x y)
 mid3 (l x) (eqL i) = l (mid3 x L)
-mid3 (l x) (eqC i) = mid3L x i
+mid3 (l x) (eqM i) = mid3L x i
 mid3 (l x) (eqR i) = m (mid3 x R)
 mid3 (r x) L = m (mid3 x L)
 mid3 (r x) R = r (mid3 x R)
 mid3 (r x) (l y) = m (mid3 x y)
 mid3 (r x) (r y) = r (mid3 x y)
 mid3 (r x) (eqL i) = m (mid3 x L)
-mid3 (r x) (eqC i) = mid3R x i
+mid3 (r x) (eqM i) = mid3R x i
 mid3 (r x) (eqR i) = r (mid3 x R)
 mid3 (eqL i) L = l (eqL i)
 mid3 (eqL i) R = l (eqR i)
 mid3 (eqL i) (l y) = l (l y)
 mid3 (eqL i) (r y) = l (r y)
 mid3 (eqL i) (eqL j) = l (eqL (i ∨ j))
-mid3 (eqL i) (eqC j) = l (eqC j)
+mid3 (eqL i) (eqM j) = l (eqM j)
 mid3 (eqL i) (eqR j) = l (eqR (i ∨ j))
-mid3 (eqC i) L = l (r L)
-mid3 (eqC i) R = r (l R)
-mid3 (eqC i) (l y) = l (r y)
-mid3 (eqC i) (r y) = r (l y)
-mid3 (eqC i) (eqL j) = l (r L)
-mid3 (eqC i) (eqC j) = m (eqC j)
-mid3 (eqC i) (eqR j) = r (l R)
+mid3 (eqM i) L = l (r L)
+mid3 (eqM i) R = r (l R)
+mid3 (eqM i) (l y) = l (r y)
+mid3 (eqM i) (r y) = r (l y)
+mid3 (eqM i) (eqL j) = l (r L)
+mid3 (eqM i) (eqM j) = m (eqM j)
+mid3 (eqM i) (eqR j) = r (l R)
 mid3 (eqR i) L = r (eqL i)
 mid3 (eqR i) R = r (eqR i)
 mid3 (eqR i) (l y) = r (l y)
 mid3 (eqR i) (r y) = r (r y)
 mid3 (eqR i) (eqL j) = r (eqL (i ∨ j))
-mid3 (eqR i) (eqC j) = r (eqC j)
+mid3 (eqR i) (eqM j) = r (eqM j)
 mid3 (eqR i) (eqR j) = r (eqR (i ∨ j))
 
-mid3L L = cong l eqC
-mid3L R = (cong l (sym eqR)) ∙∙ eqC ∙∙ (cong r eqL)
+mid3L L = cong l eqM
+mid3L R = (cong l (sym eqR)) ∙∙ eqM ∙∙ (cong r eqL)
 mid3L (l x) = cong l (mid3R x)
 mid3L (r x) = cong m (mid3L x)
 mid3L (eqL i) = cong l (coherence-lem i)
-mid3L (eqC i) = cong (l ∘ r) eqC
+mid3L (eqM i) = cong (l ∘ r) eqM
 mid3L (eqR i) = cong m (coherence-lem i)
 
-mid3R L = cong m eqC
-mid3R R = cong r eqC
+mid3R L = cong m eqM
+mid3R R = cong r eqM
 mid3R (l x) = cong m (mid3R x)
 mid3R (r x) = cong r (mid3L x)
 mid3R (eqL i) = cong m (coherence-lem i)
-mid3R (eqC i) = cong (r ∘ l) eqC
-mid3R (eqR i) j = r (doubleCompPath-filler (cong l (sym eqR)) eqC (cong r eqL) i j)
+mid3R (eqM i) = cong (r ∘ l) eqM
+mid3R (eqR i) j = r (doubleCompPath-filler (cong l (sym eqR)) eqM (cong r eqL) i j)
 
 lem : (f : 𝔹 → 𝔹) → {x : 𝔹} → (p : x ≡ f x) → Square p (cong f p) p (cong f p)
 lem f p i j = hcomp (λ k → λ { (i = i0) → p j
@@ -1283,7 +1353,7 @@ mid3idem R = eqR
 mid3idem (l x) = cong l (mid3idem x)
 mid3idem (r x) = cong r (mid3idem x)
 mid3idem (eqL i) = eqLNat i
-mid3idem (eqC i) j = coherence-lem j i
+mid3idem (eqM i) j = coherence-lem j i
 mid3idem (eqR i) = eqRNat i
 
 \end{code}
