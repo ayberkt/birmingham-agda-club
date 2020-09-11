@@ -75,7 +75,6 @@ fzero n = zero , zero-≤
 data Dyadic : Type₀ where
   Num : (n : ℕ) → Fin (2^ n) → Dyadic
   Reduce : (n : ℕ) → (x : Fin (2^ n)) → Num n x ≡ Num (suc n) (x +F x)
-  Squash : isSet Dyadic
 
 Num≡ : ∀ {n m} → (n ≡ m) → (x : Fin (2^ n)) → (y : Fin (2^ m)) → (fst x ≡ fst y) → Num n x ≡ Num m y
 Num≡ p x y q i = Num (p i) (FinPath (cong 2^_ p) x y q i)
@@ -132,77 +131,59 @@ lem2 a b c d p = d * a ≡⟨ sym (div2lem (d * a)) ⟩
                  div2 (c * b + c * b) ≡⟨ div2lem (c * b) ⟩
                  c * b ∎
 
-_≡D'_ : Dyadic → Dyadic → hProp ℓ-zero
-Num n (a , _) ≡D' Num m (b , _) = (2^ m * a ≡ 2^ n * b) , isSetℕ (2^ m * a) ((2^ n) * b)
-Num n x@(a , _) ≡D' Reduce m y@(b , _) i =
-  ⇔toPath {P = Num n x ≡D' Num m y}
-          {Q = Num n x ≡D' Num (suc m) (y +F y)}
-          (λ p → lem1 a b (2^ n) (2^ m) p)
-          (λ p → lem2 a b (2^ n) (2^ m) p)
-          i
+-- _≡D_ : Dyadic → Dyadic → Type₀
+-- Num n x ≡D Num m y = 2^ m * fst x ≡ 2^ n * fst y
+-- Num n x ≡D Reduce m y j =
+--   propExt (isSetℕ (2^ m * fst x) (2^ n * fst y))
+--           (isSetℕ (2^ suc m * fst x) (2^ n * (fst y + fst y)))
+--           (λ p → lem1 (fst x) (fst y) (2^ n) (2^ m) p)
+--           (λ p → lem2 (fst x) (fst y) (2^ n) (2^ m) p)
+--           j
+-- Reduce n x i ≡D Num n₁ x₁ = {!!}
+-- Reduce n x i ≡D Reduce n₁ x₁ i₁ = {!!}
 
-Num n x ≡D' Squash b b₁ x₁ y i i₁ = {!!}
-Reduce n x@(a , _) i ≡D' Num m y@(b , _) =
-  ⇔toPath {P = Num n x ≡D' Num m y}
-          {Q = Num (suc n) (x +F x) ≡D' Num m y}
-          (λ p → sym (lem1 b a (2^ m) (2^ n) (sym p)))
-          (λ p → sym (lem2 b a (2^ m) (2^ n) (sym p)))
-          i
-Reduce n x i ≡D' Reduce m y j =
+helper0 : ∀ (n m : ℕ) (x : Fin (2^ n)) (y : Fin (2^ m)) → hProp ℓ-zero
+helper0 n m x y = (2^ m * fst x ≡ 2^ n * fst y) , isSetℕ (2^ m * fst x) ((2^ n) * fst y)
+
+helper1 : ∀ n m x y → (helper0 n m x y ≡ helper0 n (suc m) x (y +F y))
+helper1 n m x y = ⇔toPath {P = helper0 n m x y}
+                          {Q = helper0 n (suc m) x (y +F y)}
+                          (λ p → lem1 (fst x) (fst y) (2^ n) (2^ m) p)
+                          (λ p → lem2 (fst x) (fst y) (2^ n) (2^ m) p)
+
+helper2 : ∀ n m x y → (helper0 n m x y ≡ helper0 (suc n) m (x +F x) y)
+helper2 n m x y = ⇔toPath {P = helper0 n m x y}
+          {Q = helper0 (suc n) m (x +F x) y}
+          (λ p → sym (lem1 (fst y) (fst x) (2^ m) (2^ n) (sym p)))
+          (λ p → sym (lem2 (fst y) (fst x) (2^ m) (2^ n) (sym p)))
+
+
+_≡D_ : Dyadic → Dyadic → hProp ℓ-zero
+Num n x ≡D Num m y = helper0 n m x y
+Num n x ≡D Reduce m y i = helper1 n m x y i
+Reduce n x i ≡D Num m y = helper2 n m x y i
+Reduce n x i ≡D Reduce m y j =
   isSet→isSet' isSetHProp
-               {Num n x ≡D' Num m y}
-               {Num n x ≡D' Num (suc m) (y +F y)}
-               (λ j → Num n x ≡D' Reduce m y j)
-               {Num (suc n) (x +F x) ≡D' Num m y}
-               {Num (suc n) (x +F x) ≡D' Num (suc m) (y +F y)}
-               (λ j → Num (suc n) (x +F x) ≡D' Reduce m y j)
-               (λ i → Reduce n x i ≡D' Num m y)
-               (λ i → Reduce n x i ≡D' Num (suc m) (y +F y))
+               {helper0 n m x y}
+               {helper0 n (suc m) x (y +F y)}
+               (helper1 n m x y)
+               {helper0 (suc n) m (x +F x) y}
+               {helper0 (suc n) (suc m) (x +F x) (y +F y)}
+               (helper1 (suc n) m (x +F x) y)
+               (helper2 n m x y)
+               (helper2 n (suc m) x (y +F y))
                i
                j
-Reduce n x i ≡D' Squash b b₁ x₁ y i₁ i₂ = {!!}
-Squash a a₁ x y i i₁ ≡D' b = {!!}
 
--- _≡D_ : Dyadic → Dyadic → Type₀
--- Num n (a , _) ≡D Num m (b , _) = 2^ m * a ≡ 2^ n * b
--- Num n (a , _) ≡D Reduce m (b , _) i =
---   propExt (isSetℕ (2^ m * a) (2^ n * b))
---           (isSetℕ (((2^ m) + (2^ m)) * a) ((2^ n) * (b + b)))
---           (λ p → ((2^ m) + (2^ m)) * a ≡⟨ sym (*-distribʳ (2^ m) (2^ m) a) ⟩
---                  2^ m * a + 2^ m * a ≡⟨ cong₂ _+_ p p ⟩
---                  2^ n * b + 2^ n * b ≡⟨ *-distribˡ (2^ n) b b ⟩
---                  (2^ n) * (b + b) ∎)
---           (λ p → (2^ m) * a ≡⟨ sym (div2lem ((2^ m) * a)) ⟩
---                  div2 (2^ m * a + 2^ m * a) ≡⟨ cong div2 (*-distribʳ (2^ m) (2^ m) a) ⟩
---                  div2 ((2^ m + 2^ m) * a) ≡⟨ cong div2 p ⟩
---                  div2 ((2^ n) * (b + b)) ≡⟨ cong div2 (sym (*-distribˡ (2^ n) b b)) ⟩
---                  div2 ((2^ n) * b + (2^ n) * b) ≡⟨ div2lem ((2^ n) * b) ⟩
---                  (2^ n) * b ∎)
---           i
--- Num n x ≡D Squash b b₁ x₁ y i i₁ = {!!}
--- Reduce n x i ≡D Num m y = {!!}
--- Reduce n x i ≡D Reduce m y j = {!!}
--- Reduce n x i ≡D Squash b b₁ x₁ y i₁ i₂ = {!!}
--- Squash a a₁ x y i i₁ ≡D b = {!!}
+≡DRefl : ∀ x → [ x ≡D x ]
+≡DRefl (Num n x) = refl
+≡DRefl (Reduce n x i) = {!!}
 
-sq-set : (A : I → I → Type₀) → (∀ i j → isSet (A i j)) →
-  {a₀₀ : A i0 i0} {a₀₁ : A i0 i1} (a₀₋ : PathP (λ j → A i0 j) a₀₀ a₀₁)
-  {a₁₀ : A i1 i0} {a₁₁ : A i1 i1} (a₁₋ : PathP (λ j → A i1 j) a₁₀ a₁₁)
-  (a₋₀ : PathP (λ i → A i i0) a₀₀ a₁₀) (a₋₁ : PathP (λ i → A i i1) a₀₁ a₁₁)
-  → SquareP A a₀₋ a₁₋ a₋₀ a₋₁
-sq-set A isSetA a₀₋ a₁₋ a₋₀ a₋₁ = toPathP (helper (λ i → isSetA i1 i) (transp (λ i → PathP (A i) (a₋₀ i) (a₋₁ i)) i0 a₀₋) a₁₋)
-  where
+≡→≡D : (x y : Dyadic) → x ≡ y → [ x ≡D y ]
+≡→≡D x y = J (λ z p → [ x ≡D z ]) (≡DRefl x)
 
-    test3 : {A B : Type₀} → (p : A ≡ B) → (x : A) → transport (sym p) (transport p x) ≡ x
-    test3 p x j = transp (λ i → p (~ i ∧ ~ j)) j (transp (λ i → p (i ∧ ~ j)) j x)
-
-    test : {A B : Type₀} → (p : A ≡ B) → (x y : A) → transport p x ≡ transport p y → x ≡ y
-    test p x y q = sym (test3 p x) ∙∙ cong (transport (sym p)) q ∙∙ test3 p y
-
-    helper : {B : I → Type₀} → ((i : I) → isSet (B i)) → {a : B i0} {b : B i1} (p q : PathP (λ i → B i) a b) → p ≡ q
-    helper {B} isSetB {a} {b} p q = test (PathP≡Path B a b) p q (isSetB i1 (transport (λ i → B i) a) b (transport (PathP≡Path B a b) p) (transport (PathP≡Path B a b) q))
-
-
+DyadicIsSet : isSet Dyadic
+DyadicIsSet = {!!}
 
 
 Dyadic-ind : {X : Dyadic → Set}
@@ -212,14 +193,6 @@ Dyadic-ind : {X : Dyadic → Set}
            → (d : Dyadic) → X d
 Dyadic-ind isSet f e (Num n x) = f n x
 Dyadic-ind isSet f e (Reduce n x i) = e n x i
-Dyadic-ind {X} isSet f e (Squash x y p q i j) = sq-set (λ i j → X (Squash x y p q i j))
-                                                       (λ i j → isSet (Squash x y p q i j))
-                                                       (λ j → Dyadic-ind isSet f e (p j))
-                                                       (λ j → Dyadic-ind isSet f e (q j))
-                                                       (λ i → Dyadic-ind isSet f e x)
-                                                       (λ i → Dyadic-ind isSet f e y)
-                                                       i
-                                                       j
 
 Dyadic-rec : {X : Set}
            → isSet X
@@ -229,13 +202,6 @@ Dyadic-rec : {X : Set}
            → X
 Dyadic-rec isSetX f e (Num n x) = f n x
 Dyadic-rec isSetX f e (Reduce n x i) = e n x i
-Dyadic-rec isSetX f e (Squash x y p q i j) = isSet→isSet' isSetX
-                                                          (λ j → Dyadic-rec isSetX f e (p j))
-                                                          (λ j → Dyadic-rec isSetX f e (q j))
-                                                          (λ i → Dyadic-rec isSetX f e x)
-                                                          (λ i → Dyadic-rec isSetX f e y)
-                                                          i
-                                                          j
 
 Dyadic-rec-2 : {X : Set}
              → isSet X
@@ -257,13 +223,7 @@ Dyadic-rec-2 isSetX f e₁ e₂ = Dyadic-rec (isSetΠ λ _ → isSetX) rest coh
                                             (λ i → e₁ n (suc m) x (y +F y) i)
                                             i
                                             j
-    coh n x i (Squash y z p q j k) = isSet→isSet' isSetX
-                                                  (λ k → coh n x i (p k))
-                                                  (λ k → coh n x i (q k))
-                                                  (λ j → coh n x i y)
-                                                  (λ j → coh n x i z)
-                                                  j
-                                                  k
+
 
 Dyadic≡ : {X : Set}
         → isSet X
@@ -307,7 +267,7 @@ Dyadic≡4 isSetX f g e x = Dyadic≡3 isSetX (f x) (g x) pf
 
 
 _⊕_ : Dyadic → Dyadic → Dyadic
-_⊕_ = Dyadic-rec-2 Squash f e₁ e₂
+_⊕_ = Dyadic-rec-2 DyadicIsSet f e₁ e₂
   where
     f : (n m : ℕ) → Fin (2^ n) → Fin (2^ m) → Dyadic
     f n m x y = Num (suc (n + m)) ((*F n m x (full (2^ m))) +F (*F n m (full (2^ n)) y))
@@ -332,14 +292,14 @@ R = Num 0 (1 , ≤-refl)
 
 l r : Dyadic → Dyadic
 
-l = Dyadic-rec Squash (λ n x → Num (suc n) (fzero (2^ n) +F x))
+l = Dyadic-rec DyadicIsSet (λ n x → Num (suc n) (fzero (2^ n) +F x))
      λ n x → (Reduce _ _) ∙ (Num≡ refl _ _ refl)
 
-r = Dyadic-rec Squash (λ n x → Num (suc n) (full (2^ n) +F x))
+r = Dyadic-rec DyadicIsSet (λ n x → Num (suc n) (full (2^ n) +F x))
      λ n x → (Reduce _ _) ∙ (Num≡ refl _ _ (interchange (2^ n) (fst x) (2^ n) (fst x)))
 
 ⊕-idem : ∀ d → d ⊕ d ≡ d
-⊕-idem = Dyadic≡ Squash (λ d → d ⊕ d) (λ d → d) pf
+⊕-idem = Dyadic≡ DyadicIsSet (λ d → d ⊕ d) (λ d → d) pf
   where
     pf : (n : ℕ) (x : Fin (2^ n)) → (Num n x ⊕ Num n x) ≡ Num n x
     pf n (a , _) = Num≡* _ _ e
@@ -354,7 +314,7 @@ r = Dyadic-rec Squash (λ n x → Num (suc n) (full (2^ n) +F x))
             ((2^ (n + n)) + (2^ (n + n))) * a ∎
 
 ⊕-comm : ∀ x y → x ⊕ y ≡ y ⊕ x
-⊕-comm = Dyadic≡2 Squash _⊕_ (λ x y → y ⊕ x) pf
+⊕-comm = Dyadic≡2 DyadicIsSet _⊕_ (λ x y → y ⊕ x) pf
   where
     pf : (n m : ℕ) (x : Fin (2^ n)) (y : Fin (2^ m)) →
            (Num n x ⊕ Num m y) ≡ (Num m y ⊕ Num n x)
@@ -366,7 +326,7 @@ r = Dyadic-rec Squash (λ n x → Num (suc n) (full (2^ n) +F x))
             b * (2^ n) + (2^ m) * a ∎
 
 ⊕-trans : ∀ a b c d → (a ⊕ b) ⊕ (c ⊕ d) ≡ (a ⊕ c) ⊕ (b ⊕ d)
-⊕-trans = Dyadic≡4 Squash (λ a b c d → (a ⊕ b) ⊕ (c ⊕ d)) (λ a b c d → (a ⊕ c) ⊕ (b ⊕ d)) pf
+⊕-trans = Dyadic≡4 DyadicIsSet (λ a b c d → (a ⊕ b) ⊕ (c ⊕ d)) (λ a b c d → (a ⊕ c) ⊕ (b ⊕ d)) pf
   where
     pf : (n m l o : ℕ) (x : Fin (2^ n)) (y : Fin (2^ m)) (z : Fin (2^ l))
            (w : Fin (2^ o)) →
