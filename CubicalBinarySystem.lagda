@@ -1032,8 +1032,8 @@ minv = cases
         eqM
 
 minv-defining-equations :
-     (minv L ≡ L)
-   × (minv R ≡ R)
+     (minv       L ≡ L)
+   × (minv       R ≡ R)
    × (minv ∘ l ∘ l ≡ λ _ → L)
    × (minv ∘ l ∘ r ≡ l)
    × (minv ∘ r ∘ l ≡ r)
@@ -1106,13 +1106,13 @@ We now return to properties of midpoint:
 ⊕-idemp = 𝔹-ind-eq _ _ eqL eqR (λ x → cong l) (λ x → cong r)
 
 ⊕-comm : (x y : 𝔹) → x ⊕ y ≡ y ⊕ x
-⊕-comm = 𝔹-ind-prop _ (λ x → isPropΠ (λ y → 𝔹-is-set (x ⊕ y) (y ⊕ x))) L-⊕-comm R-⊕-comm f g
+⊕-comm = 𝔹-ind-prop _ (λ x → isPropΠ (λ y → 𝔹-is-set (x ⊕ y) (y ⊕ x))) u v f g
  where
-  L-⊕-comm : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
-  L-⊕-comm = 𝔹-ind-eq _ _ refl eqM (λ y → cong l) (λ y → cong m)
+  u : (y : 𝔹) → L ⊕ y ≡ y ⊕ L
+  u = 𝔹-ind-eq _ _ refl eqM (λ y → cong l) (λ y → cong m)
 
-  R-⊕-comm : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
-  R-⊕-comm = 𝔹-ind-eq _ _ (sym eqM) refl (λ y p → cong m p) (λ y p → cong r p)
+  v : (y : 𝔹) → R ⊕ y ≡ y ⊕ R
+  v = 𝔹-ind-eq _ _ (sym eqM) refl (λ y p → cong m p) (λ y p → cong r p)
 
   f : (x : 𝔹) → ((y : 𝔹) → x ⊕ y ≡ y ⊕ x) → (y : 𝔹) → l x ⊕ y ≡ y ⊕ l x
   f x h = 𝔹-cases-eq _ _ (λ y → cong l (h y)) (λ y → cong m (h y))
