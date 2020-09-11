@@ -424,14 +424,10 @@ L'-is-not-η p = transport (cong is-L' p) *
 𝔹-is-set = isOfHLevelRespectEquiv 2 𝔹'-is-equiv-to-𝔹 𝔹'-is-set
 
 𝔹-is-discrete : Discrete 𝔹
-𝔹-is-discrete x y = d
- where
-  d' : Dec (φ x ≡ φ y)
-  d' = 𝔹'-is-discrete (φ x) (φ y)
-
-  d : Dec (x ≡ y)
-  d = mapDec (isoFunInjective (iso φ γ φγ γφ) x y) (λ f p → f (cong φ p)) d'
-
+𝔹-is-discrete x y = mapDec
+                     (isoFunInjective (iso φ γ φγ γφ) x y)
+                     (λ f p → f (cong φ p))
+                     (𝔹'-is-discrete (φ x) (φ y))
 \end{code}
 
 An attempt to prove directly that 𝔹 is discrete by pattern matching
@@ -490,9 +486,9 @@ The desired equations for 𝔹'-rec hold, but not definitionally:
  𝔹'-rec-r R'    = eqg
  𝔹'-rec-r (η x) = refl
 
- 𝔹'-rec-L i = fixed-point-construction x f eqf i
- 𝔹'-rec-M i = path-construction (f y) (g x) eqfg i
- 𝔹'-rec-R i = fixed-point-construction y g eqg i
+ 𝔹'-rec-L i = fixed-point-construction x     f     eqf  i
+ 𝔹'-rec-M i = path-construction        (f y) (g x) eqfg i
+ 𝔹'-rec-R i = fixed-point-construction y     g     eqg  i
 
 \end{code}
 
@@ -613,9 +609,9 @@ module _ {ℓ    : Level}
          (y    : P R')
          (f    : (b : 𝔹') → P b → P (l' b))
          (g    : (b : 𝔹') → P b → P (r' b))
-         (eqf  : x ≡ f L' x)      -- This is possible only because
+         (eqf  : x      ≡ f L' x) -- This is possible only because
          (eqfg : f R' y ≡ g L' x) -- the equations L' ≡ l' L' and l' R' ≡ r' L'
-         (eqg  : y ≡ g R' y)      -- and R' ≡ r' R' hold definitionally.
+         (eqg  : y      ≡ g R' y) -- and R' ≡ r' R' hold definitionally.
        where
 
  𝔹'-ind : (b : 𝔹') → P b
@@ -652,9 +648,9 @@ With the following proofs:
  𝔹'-ind-r R'    = eqg
  𝔹'-ind-r (η x) = refl
 
- 𝔹'-ind-L i = fixed-point-construction x (f L') eqf i
- 𝔹'-ind-M i = path-construction (f R' y) (g L' x) eqfg i
- 𝔹'-ind-R i = fixed-point-construction y (g R') eqg i
+ 𝔹'-ind-L i = fixed-point-construction x        (f L')   eqf i
+ 𝔹'-ind-M i = path-construction        (f R' y) (g L' x) eqfg i
+ 𝔹'-ind-R i = fixed-point-construction y        (g R')   eqg i
 
 \end{code}
 
@@ -764,7 +760,8 @@ cases-uniqueness-set f g p h u v isSetX = cases-uniqueness f g p h u v c
 
 \end{code}
 
-We now prove some fundamental properties of 𝔹.
+We now define some fundamental functions on 𝔹 and prove some of their
+fundamental properties.
 
 \begin{code}
 
@@ -916,10 +913,12 @@ m-defining-equations : (m L   ≡ l (r L))
 m-defining-equations = refl , refl , refl , refl
 
 l-by-cases : l ∼ cases (l ∘ l) (m ∘ l) (cong l eqM)
-l-by-cases = cases-uniqueness (l ∘ l) (m ∘ l) (cong l eqM) l (λ x → refl) (λ x → refl) (λ i → refl)
+l-by-cases = cases-uniqueness (l ∘ l) (m ∘ l)
+              (cong l eqM) l (λ x → refl) (λ x → refl) (λ i → refl)
 
 r-by-cases : r ∼ cases (m ∘ r) (r ∘ r) (cong r eqM)
-r-by-cases = cases-uniqueness (r ∘ l) (r ∘ r) (cong r eqM) r (λ x → refl) (λ x → refl) (λ i → refl)
+r-by-cases = cases-uniqueness (r ∘ l) (r ∘ r)
+              (cong r eqM) r (λ x → refl) (λ x → refl) (λ i → refl)
 
 is-𝓛-function : (𝔹 → 𝔹) → Type₀
 is-𝓛-function f = compatible (l ∘ f) (m ∘ f)
@@ -933,17 +932,22 @@ is-𝓡-function f = compatible (m ∘ f) (r ∘ f)
 𝓡 : (f : 𝔹 → 𝔹) → is-𝓡-function f → (𝔹 → 𝔹)
 𝓡 f = cases (m ∘ f) (r ∘ f)
 
-preservation-𝓛𝓛 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓛-function (𝓛 f a)
-preservation-𝓛𝓛 f a b = cong l b
+module _ (f : 𝔹 → 𝔹)
+         (a : is-𝓛-function f)
+         (b : is-𝓡-function f)
+      where
 
-preservation-𝓛𝓡 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓡-function (𝓛 f a)
-preservation-𝓛𝓡 f a b = cong m b
+ preservation-𝓛𝓛 : is-𝓛-function (𝓛 f a)
+ preservation-𝓛𝓛 = cong l b
 
-preservation-𝓡𝓛 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓛-function (𝓡 f b)
-preservation-𝓡𝓛 f a b = cong m a
+ preservation-𝓛𝓡 : is-𝓛-function (𝓡 f b)
+ preservation-𝓛𝓡 = cong m a
 
-preservation-𝓡𝓡 : (f : 𝔹 → 𝔹) (a : is-𝓛-function f) (b : is-𝓡-function f) → is-𝓡-function (𝓡 f b)
-preservation-𝓡𝓡 f a b = cong r a
+ preservation-𝓡𝓛 : is-𝓡-function (𝓛 f a)
+ preservation-𝓡𝓛 = cong m b
+
+ preservation-𝓡𝓡 : is-𝓡-function (𝓡 f b)
+ preservation-𝓡𝓡 = cong r a
 
 is-𝓛𝓡-function : (𝔹 → 𝔹) → Type₀
 is-𝓛𝓡-function f = is-𝓛-function f × is-𝓡-function f
@@ -959,8 +963,8 @@ F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 𝑅 = r , m-compatibility , cong r eqM
 
 𝑙 𝑟 : F → F
-𝑙 (f , a , b) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓛𝓡 f a b
-𝑟 (f , a , b) = 𝓡 f b , preservation-𝓡𝓛 f a b , preservation-𝓡𝓡 f a b
+𝑙 (f , a , b) = 𝓛 f a , preservation-𝓛𝓛 f a b , preservation-𝓡𝓛 f a b
+𝑟 (f , a , b) = 𝓡 f b , preservation-𝓛𝓡 f a b , preservation-𝓡𝓡 f a b
 
 eq𝐿 : 𝐿 ≡ 𝑙 𝐿
 eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
@@ -969,11 +973,7 @@ eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
   a = l-by-cases
 
 eq𝐶 : 𝑙 𝑅 ≡ 𝑟 𝐿
-eq𝐶 = ΣProp≡ being-𝓛𝓡-function-is-prop a
- where
-  a : cases (l ∘ r) (m ∘ r) m-compatibility
-    ≡ cases (m ∘ l) (r ∘ l) m-compatibility
-  a = refl
+eq𝐶 = refl
 
 eq𝑅 : 𝑅 ≡ 𝑟 𝑅
 eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
