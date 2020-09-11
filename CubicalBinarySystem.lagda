@@ -967,19 +967,13 @@ F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 𝑟 (f , a , b) = 𝓡 f b , preservation-𝓛𝓡 f a b , preservation-𝓡𝓡 f a b
 
 eq𝐿 : 𝐿 ≡ 𝑙 𝐿
-eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
- where
-  a : l ∼ 𝓛 l (cong l eqM)
-  a = l-by-cases
+eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt l-by-cases)
 
-eq𝐶 : 𝑙 𝑅 ≡ 𝑟 𝐿
-eq𝐶 = refl
+eq𝑀 : 𝑙 𝑅 ≡ 𝑟 𝐿
+eq𝑀 = refl
 
 eq𝑅 : 𝑅 ≡ 𝑟 𝑅
-eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt a)
- where
-  a : r ∼ 𝓡 r (cong r eqM)
-  a = r-by-cases
+eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt r-by-cases)
 
 \end{code}
 
@@ -989,7 +983,8 @@ _⊕_ is as follows:
 \begin{code}
 
 mid : 𝔹 → F
-mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 eq𝐿 eq𝐶 eq𝑅
+mid = 𝔹-rec 𝐿 𝑅 𝑙 𝑟 eq𝐿 eq𝑀 eq𝑅
+
 mid-definition-equations :
     (mid   L ≡ 𝐿 )
   × (mid   R ≡ 𝑅)
