@@ -59,6 +59,11 @@ Sigma = Σ
 syntax Sigma X (λ x → a) = Σ x ꞉ X , a
 infixr -1 Sigma
 
+Exists! : ∀ {ℓ ℓ'} (A : Type ℓ) (B : A → Type ℓ') → Type (ℓ-max ℓ ℓ')
+Exists! = ∃!
+
+syntax Exists! X (λ x → a) = ∃! x ꞉ X , a
+infixr -1 Exists!
 
 _∼_ : {X : Type ℓ} {A : X → Type ℓ'}
     → ((x : X) → A x)
@@ -68,14 +73,27 @@ f ∼ g = ∀ x → f x ≡ g x
 
 infix  4  _∼_
 
-isoFunInjective : {A : Type ℓ} {B : Type ℓ'} (f : Iso A B) → (x y : A)
-                → Iso.fun f x ≡ Iso.fun f y → x ≡ y
-isoFunInjective f x y h = sym (Iso.leftInv f x) ∙∙ cong (Iso.inv f) h ∙∙ Iso.leftInv f y
+\end{code}
+
+Comment out the following line for more recent versions of the cubical
+library:
+
+\begin{code}
+
+-- Σ≡Prop = ΣProp≡
 
 \end{code}
 
-The last function above is in the development version of the cubical
-library in Foundations/Isomorphism.
+The following is missing in the older versions of the cubical
+library, where in in the newer versions it is called isoFunInjective.
+
+\begin{code}
+
+isoFunInjective' : {A : Type ℓ} {B : Type ℓ'} (f : Iso A B) → (x y : A)
+                → Iso.fun f x ≡ Iso.fun f y → x ≡ y
+isoFunInjective' f x y h = sym (Iso.leftInv f x) ∙∙ cong (Iso.inv f) h ∙∙ Iso.leftInv f y
+
+\end{code}
 
 The initial binary system as a HIT:
 
@@ -425,7 +443,7 @@ L'-is-not-η p = transport (cong is-L' p) *
 
 𝔹-is-discrete : Discrete 𝔹
 𝔹-is-discrete x y = mapDec
-                     (isoFunInjective (iso φ γ φγ γφ) x y)
+                     (isoFunInjective' (iso φ γ φγ γφ) x y)
                      (λ f p → f (cong φ p))
                      (𝔹'-is-discrete (φ x) (φ y))
 \end{code}
@@ -457,6 +475,16 @@ module _  {ℓ    : Level}
  𝔹-rec (eqL i) = eqf i
  𝔹-rec (eqM i) = eqfg i
  𝔹-rec (eqR i) = eqg i
+
+ 𝔹-initiality : ∃! h ꞉ (𝔹 → X)
+               , Σ pl ꞉ h L ≡ x
+               , Σ pr ꞉ h R ≡ y
+               , Σ Hl ꞉ h ∘ l ∼ f ∘ h
+               , Σ Hr ꞉ h ∘ r ∼ g ∘ h
+               , (cong h eqL ≡ pl ∙ eqf ∙ (cong f pl)⁻¹ ∙ (Hl L)⁻¹)
+               × (cong h eqR ≡ pr ∙ eqg ∙ (cong g pr)⁻¹ ∙ (Hr R)⁻¹)
+               × (cong h eqM ≡ Hl R ∙ cong f pr ∙ eqfg ∙ (cong g pl)⁻¹ ∙ (Hr L)⁻¹)
+ 𝔹-initiality = {!!}
 
  𝔹'-rec : 𝔹' → X
  𝔹'-rec L'            = x
@@ -906,6 +934,20 @@ m-compatibility = cong l (sym eqR) ∙∙ eqM ∙∙ cong r eqL
 m : 𝔹 → 𝔹
 m = cases (l ∘ r) (r ∘ l) m-compatibility
 
+cases-lc-l : (f g f' g' : 𝔹 → 𝔹)
+             (c :  compatible f g)
+             (c' : compatible f' g')
+           → cases f g c ≡ cases f' g' c'
+           → f ∼ f'
+cases-lc-l f g f' g' c c' p x = cong (λ - → - (l x)) p
+
+cases-lc-r : (f g f' g' : 𝔹 → 𝔹)
+             (c :  compatible f g)
+             (c' : compatible f' g')
+           → cases f g c ≡ cases f' g' c'
+           → g ∼ g'
+cases-lc-r f g f' g' c c' p x = cong (λ - → - (r x)) p
+
 m-defining-equations : (m L   ≡ l (r L))
                      × (m R   ≡ r (l R))
                      × (m ∘ l ≡ l ∘ r)
@@ -967,13 +1009,13 @@ F = Σ f ꞉ (𝔹 → 𝔹) , is-𝓛𝓡-function f
 𝑟 (f , a , b) = 𝓡 f b , preservation-𝓛𝓡 f a b , preservation-𝓡𝓡 f a b
 
 eq𝐿 : 𝐿 ≡ 𝑙 𝐿
-eq𝐿 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt l-by-cases)
+eq𝐿 = Σ≡Prop being-𝓛𝓡-function-is-prop (funExt l-by-cases)
 
 eq𝑀 : 𝑙 𝑅 ≡ 𝑟 𝐿
 eq𝑀 = refl
 
 eq𝑅 : 𝑅 ≡ 𝑟 𝑅
-eq𝑅 = ΣProp≡ being-𝓛𝓡-function-is-prop (funExt r-by-cases)
+eq𝑅 = Σ≡Prop being-𝓛𝓡-function-is-prop (funExt r-by-cases)
 
 \end{code}
 
@@ -995,6 +1037,18 @@ mid-definition-equations = refl , refl , refl , refl
 _⊕_ : 𝔹 → 𝔹 → 𝔹
 x ⊕ y = fst (mid x) y
 
+⊕-defining-equations : (x y : 𝔹)
+ → ( l x ⊕ y ≡ cases (l ∘ (x ⊕_)) (m ∘ (x ⊕_)) (fst (snd (mid x))) y )
+ × ( r x ⊕ y ≡ cases (m ∘ (x ⊕_)) (r ∘ (x ⊕_)) (snd (snd (mid x))) y )
+⊕-defining-equations x y = refl , refl
+
+try : (a x y : 𝔹) → a ⊕ x ≡ a ⊕ y → x ≡ y
+try = 𝔹-ind-prop {!!} {!!}
+       (λ x y → l-lc)
+       (λ x y → r-lc)
+       (λ a f → {!!})
+       {!!}
+
 \end{code}
 
 By construction, the following equations hold:
@@ -1006,18 +1060,18 @@ By construction, the following equations hold:
            × (m (x ⊕ R) ≡ r (x ⊕ L))
 ⊕-property x = snd (mid x)
 
-⊕-defining-equations : (x y : 𝔹)
-   → (  L   ⊕ y   ≡ l y        )
-   × (  R   ⊕ y   ≡ r y        )
-   × (  l x ⊕ L   ≡ l (x ⊕ L)  )
-   × (  l x ⊕ R   ≡ m (x ⊕ R)  )
-   × (  l x ⊕ l y ≡ l (x ⊕ y)  )
-   × (  l x ⊕ r y ≡ m (x ⊕ y)  )
-   × (  r x ⊕ R   ≡ r (x ⊕ R)  )
-   × (  r x ⊕ L   ≡ m (x ⊕ L)  )
-   × (  r x ⊕ l y ≡ m (x ⊕ y)  )
-   × (  r x ⊕ r y ≡ r (x ⊕ y)  )
-⊕-defining-equations x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
+⊕-defining-equations' : (x y : 𝔹)
+ → (  L   ⊕ y   ≡ l y        )
+ × (  R   ⊕ y   ≡ r y        )
+ × (  l x ⊕ L   ≡ l (x ⊕ L)  )
+ × (  l x ⊕ R   ≡ m (x ⊕ R)  )
+ × (  l x ⊕ l y ≡ l (x ⊕ y)  )
+ × (  l x ⊕ r y ≡ m (x ⊕ y)  )
+ × (  r x ⊕ R   ≡ r (x ⊕ R)  )
+ × (  r x ⊕ L   ≡ m (x ⊕ L)  )
+ × (  r x ⊕ l y ≡ m (x ⊕ y)  )
+ × (  r x ⊕ r y ≡ r (x ⊕ y)  )
+⊕-defining-equations' x y = refl , refl , refl , refl , refl , refl , refl , refl , refl , refl
 
 \end{code}
 
@@ -1138,6 +1192,10 @@ mirror-⊕ = 𝔹-ind-prop _
                                m (mirror (x ⊕ y))          ≡⟨ cong m (f y) ⟩
                                mirror (r x) ⊕ mirror (l y) ∎)
                         (λ y → cong l (f y)))
+
+
+mid-lc : (x y : 𝔹) → (_⊕ x) ∼ (_⊕ y) → x ≡ y
+mid-lc x y p = l-lc (p L)
 
 M-charac : M ≡ L ⊕ R
 M-charac = refl
